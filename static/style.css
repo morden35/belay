@@ -1,6 +1,37 @@
 body {
-  text-align: center;
-  background-color: #E6E6FA;
-  color: #4B0082;
-  font-family: monaco, Consolas, "Lucida Console", monospace;
+	text-align: center;
+	background-color: #E6E6FA;
+	color: #4B0082;
+	font-family: monaco, Consolas, "Lucida Console", monospace;
+}
+
+#buttons {
+	display: flex;
+	height: 50px;
+	align-items: center;
+	justify-content: center;
+}
+
+#login {
+	margin-right: 5px;
+}
+
+#create {
+	margin-left: 5px;
+}
+
+#channels {
+	display: flex;
+	/* justify-content: space-evenly; */
+}
+
+#join {
+	width: 40%;
+	background-color: #4B0082;
+	color: white;
+}
+
+#chat {
+	width: 60%;
+	background-color: white;
 }
