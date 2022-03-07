@@ -67,7 +67,7 @@ def auth_user():
 
     if users[auth_key]['password'] == password:
         return jsonify({'success': True, 'auth_key': auth_key})
-    jsonify({'success': False})
+    return jsonify({'success': False})
 
 
 # @app.route('/update_user', methods=['POST'])

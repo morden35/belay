@@ -1,3 +1,11 @@
+window.addEventListener("popstate",
+						(newState) => {console.log(newState);
+									   ReactDOM.render(
+									   	<Belay/>,
+									   	document.getElementById('root')
+									);
+});
+
 class Belay extends React.Component {
 	// contains the entire app
 	constructor(props) {
@@ -7,11 +15,20 @@ class Belay extends React.Component {
 			password: null,
 			auth_key: null,
 			isAuth: false,
+			path: window.location.pathname
 		}
+		console.log(this.state.path);
 	}
 
+	// setNewPath(newPath, pushToHistory=true) {
+	// 	this.setState({path: newPath});
+	// 	if(pushToHistory) {
+	// 	  window.history.pushState({},"", newPath);
+	// 	}
+	// }
+
 	render() {
-		if (this.state.isAuth) {
+		if (this.state.path == "/channels") {
 			return (
 				<Channels/>
 			);
@@ -19,7 +36,8 @@ class Belay extends React.Component {
 		return (
 			<Login
 			 createUser={() => this.createUsername()}
-			 loginUser={() => this.createUsername()}/>
+			 loginUser={() => this.login()}/>
+			//  setNewPath={() => this.setNewPath()}/>
 		);
 	}
 	
@@ -37,10 +55,12 @@ class Belay extends React.Component {
 			.then(data => {
 				if (data['success']) {
 					let auth_key = data['auth_key'];
+					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
 								   auth_key: auth_key,
-								   isAuth: true});
+								   isAuth: true,
+								   path: "/channels"});
 				}
 				else {
 					console.log("Username is unavailable. Please enter a valid username and password.");
@@ -62,10 +82,12 @@ class Belay extends React.Component {
 			.then(data => {
 				if (data['success']) {
 					let auth_key = data['auth_key'];
+					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
 						auth_key: auth_key,
-						isAuth: true});
+						isAuth: true,
+						path: "/channels"});
 				}
 				else {
 					console.log("Please enter a valid username and password.");
