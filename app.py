@@ -4,6 +4,9 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from functools import wraps
 import json
+import sqlite3
+
+con = sqlite3.connect('db/belay.db', check_same_thread=False)
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -12,20 +15,20 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 # either holding it in memory on your server or in a sqlite database.
 # You may use the sample structures below or create your own.
 
-def newChat(host_auth_key):
-    magic_passphrase = ''.join(random.choices(string.ascii_lowercase + string.digits, k=40))
-    chat = {"authorized_users": set(),
-            "magic_passphrase": magic_passphrase,
-            "magic_link": "http://127.0.0.1:5000/chat/",
-            "messages": []}
-    chat["authorized_users"].add(host_auth_key)
-    return chat
+# def newChat(host_auth_key):
+#     magic_passphrase = ''.join(random.choices(string.ascii_lowercase + string.digits, k=40))
+#     chat = {"authorized_users": set(),
+#             "magic_passphrase": magic_passphrase,
+#             "magic_link": "http://127.0.0.1:5000/chat/",
+#             "messages": []}
+#     chat["authorized_users"].add(host_auth_key)
+#     return chat
 
 
-chats = {}
-unique_usernames = set()
-usernames_to_keys = {}
-users = {}
+# chats = {}
+# unique_usernames = set()
+# usernames_to_keys = {}
+# users = {}
 
 # TODO: Include any other routes your app might send users to
 @app.route('/')
@@ -43,15 +46,27 @@ def create_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password']
-    if username in unique_usernames:
+    
+    cur = con.cursor()
+    users = cur.execute("SELECT username from users").fetchall()
+    print(users)
+
+    if username in users:
         return jsonify({'success': False})
 
-    auth_key = ''.join(random.choices(string.digits, k=10))
-    unique_usernames.add(username)
-    usernames_to_keys[username] = auth_key
-    users[auth_key] = {'username': username, 'password': password, 'chats': []}
+    # auth_key = ''.join(random.choices(string.digits, k=10))
+    # unique_usernames.add(username)
+    # usernames_to_keys[username] = auth_key
+    # add user to db
+    cur.execute("INSERT INTO users (username, password_) VALUES (?, ?)", (username, password))
+    users = cur.execute("SELECT * from users").fetchall()
+    print(users)
+    cur.close()
+    
 
-    return jsonify({'success': True, 'auth_key': auth_key})
+    # users[auth_key] = {'username': username, 'password': password, 'chats': []}
+
+    return jsonify({'success': True})
 
 
 @app.route('/auth_user', methods=['POST'])
