@@ -13,7 +13,7 @@ class Belay extends React.Component {
 		this.state = {
 			username: null,
 			password: null,
-			auth_key: null,
+			// auth_key: null,
 			isAuth: false,
 			path: window.location.pathname
 		}
@@ -54,11 +54,11 @@ class Belay extends React.Component {
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {
-					let auth_key = data['auth_key'];
+					// let auth_key = data['auth_key'];
 					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
-								   auth_key: auth_key,
+								//    auth_key: auth_key,
 								   isAuth: true,
 								   path: "/channels"});
 				}
@@ -81,11 +81,11 @@ class Belay extends React.Component {
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {
-					let auth_key = data['auth_key'];
+					// let auth_key = data['auth_key'];
 					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
-						auth_key: auth_key,
+						// auth_key: auth_key,
 						isAuth: true,
 						path: "/channels"});
 				}

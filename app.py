@@ -49,7 +49,7 @@ def create_user():
     
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
-    print(users)
+    # print("users before:", users)
 
     if username in users:
         return jsonify({'success': False})
@@ -60,12 +60,10 @@ def create_user():
     # add user to db
     cur.execute("INSERT INTO users (username, password_) VALUES (?, ?)", (username, password))
     users = cur.execute("SELECT * from users").fetchall()
-    print(users)
+    # print("users after:", users)
     cur.close()
-    
 
     # users[auth_key] = {'username': username, 'password': password, 'chats': []}
-
     return jsonify({'success': True})
 
 
@@ -75,13 +73,17 @@ def auth_user():
     username = data['username']
     password = data['password']
     
-    if usernames_to_keys.get(username):
-        auth_key = usernames_to_keys[username]
-    else:
-        return jsonify({'success': False})
+    cur = con.cursor()
+    user = cur.execute('''
+                SELECT * from users
+                WHERE username = (?)
+                AND password_ = (?)
+                ''',
+                (username, password)).fetchall()
+    # print(user)
 
-    if users[auth_key]['password'] == password:
-        return jsonify({'success': True, 'auth_key': auth_key})
+    if len(user) > 0:
+        return jsonify({'success': True})
     return jsonify({'success': False})
 
 
