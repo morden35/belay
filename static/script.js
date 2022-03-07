@@ -1,10 +1,14 @@
-window.addEventListener("popstate",
-						(newState) => {console.log(newState);
-									   ReactDOM.render(
-									   	<Belay/>,
-									   	document.getElementById('root')
-									);
-});
+// window.addEventListener("popstate", ()=>{
+// 	let newPath = window.location.path
+// 	newPathSetter(newPath, false)
+//   })
+
+// const newPathSetter = (newPath, pushToHistory=false) => {
+// 	Belay.setState({path: newPath});
+// 	if(pushToHistory) {
+// 	  window.history.pushState({path: newPath},"", newPath);
+// 	}
+// }
 
 class Belay extends React.Component {
 	// contains the entire app
@@ -20,27 +24,27 @@ class Belay extends React.Component {
 		console.log(this.state.path);
 	}
 
-	// setNewPath(newPath, pushToHistory=true) {
-	// 	this.setState({path: newPath});
-	// 	if(pushToHistory) {
-	// 	  window.history.pushState({},"", newPath);
-	// 	}
-	// }
+
 
 	render() {
 		if (this.state.path == "/channels") {
 			return (
-				<Channels/>
+				<Channels
+				createChannel={() => this.createChannel()}/>
 			);
 		}
 		return (
 			<Login
 			 createUser={() => this.createUsername()}
 			 loginUser={() => this.login()}/>
-			//  setNewPath={() => this.setNewPath()}/>
+			//  setNewPath={() => this.newPathSetter()}/>
 		);
 	}
 	
+	createChannel() {
+		// TO DO
+	}
+
 	createUsername() {
 		console.log("Creating new user");
 		let username = document.querySelector("input#username").value;
@@ -55,10 +59,10 @@ class Belay extends React.Component {
 			.then(data => {
 				if (data['success']) {
 					// let auth_key = data['auth_key'];
+					// newPathSetter("/channels", true)
 					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
-								//    auth_key: auth_key,
 								   isAuth: true,
 								   path: "/channels"});
 				}
@@ -85,7 +89,6 @@ class Belay extends React.Component {
 					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
-						// auth_key: auth_key,
 						isAuth: true,
 						path: "/channels"});
 				}
@@ -125,6 +128,9 @@ class Channels extends React.Component {
 		return (
 			<div>
 				<h1>Belay</h1>
+				<div id="new_channel">
+					<button id="new_channel_button" onClick={() => this.props.createChannel()}>New Channel</button>
+				</div>
 				<div id="channels">
 					<div id="join">
 						<h2>Join a Channel</h2>

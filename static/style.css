@@ -35,3 +35,21 @@ body {
 	width: 60%;
 	background-color: white;
 }
+
+#new_channel {
+	display: flex;
+	height: 5%;
+}
+
+#new_channel_button {
+	margin: 5px 0 5px 0;
+	border-style: ridge;
+	border-width: thick;
+	border-color: #4B0082;
+	font-family: monaco, Consolas, "Lucida Console", monospace;
+	background-color: white;
+}
+
+#new_channel_button:hover {
+	background-color: #FFF0F5;
+}
