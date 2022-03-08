@@ -14,20 +14,19 @@ class Belay extends React.Component {
 		window.addEventListener("popstate", (event)=>{
 			console.log(event);
 			// console.log(window.location.pathname);
+			// let newPath = event.state.path;
 			let newPath = window.location.pathname;
-			this.newPathSetter(newPath, false)
+			this.newPathSetter(newPath, false);
 		});
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
-		console.log("setting new path")
+		console.log("setting new path");
 		this.setState({path: newPath});
 		if(pushToHistory) {
 			window.history.pushState({path: newPath},"", newPath);
 		}
 	}
-	
-
 
 	render() {
 		if (this.state.path == "/channels") {
@@ -132,7 +131,9 @@ class Channels extends React.Component {
 			<div>
 				<h1>Belay</h1>
 				<div id="new_channel">
-					<button id="new_channel_button" onClick={() => this.props.createChannel()}>New Channel</button>
+					{/* () => this.props.createChannel() */}
+					{/* onClick={} */}
+					<button id="new_channel_button">New Channel</button>
 				</div>
 				<div id="channels">
 					<div id="join">
