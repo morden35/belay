@@ -13,15 +13,26 @@ class Belay extends React.Component {
 
 		window.addEventListener("popstate", (event)=>{
 			console.log(event);
+			// console.log(event.state);
 			// console.log(window.location.pathname);
-			// let newPath = event.state.path;
-			let newPath = window.location.pathname;
+
+			let newPath
+			if (event.state) {
+				newPath = event.state.path;
+			}
+			else {
+				newPath = window.location.pathname;
+			}
 			this.newPathSetter(newPath, false);
 		});
+		// component did mount (method within this component)
+		// react component superclass
+		// called after component is loaded on page
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
 		console.log("setting new path");
+		console.log(newPath);
 		this.setState({path: newPath});
 		if(pushToHistory) {
 			window.history.pushState({path: newPath},"", newPath);
@@ -39,7 +50,7 @@ class Belay extends React.Component {
 			<Login
 			 createUser={() => this.createUsername()}
 			 loginUser={() => this.login()}
-			 setNewPath={() => this.newPathSetter()}/>
+			 setNewPath={() => this.newPathSetter("/channels", true)}/>
 		);
 	}
 	
@@ -53,20 +64,21 @@ class Belay extends React.Component {
 		let password = document.querySelector("input#password").value;
 	
 		if (username && password) {
-			let request = fetch("http://127.0.0.1:5000/create_user",
+			let request = fetch("http://127.0.0.1:5000/api/create_user",
 								{method: 'POST',
 								 body: JSON.stringify({'username': username,
 													   'password': password})});
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {
+					console.log("also setting state");
 					// let auth_key = data['auth_key'];
 					// newPathSetter("/channels", true)
-					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
+					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
-								   isAuth: true,
-								   path: "/channels"});
+								   isAuth: true});
+								//    path: "/channels"});
 				}
 				else {
 					console.log("Username is unavailable. Please enter a valid username and password.");
@@ -80,7 +92,7 @@ class Belay extends React.Component {
 		let password = document.querySelector("input#password").value;
 	
 		if (username && password) {
-			let request = fetch("http://127.0.0.1:5000/auth_user",
+			let request = fetch("http://127.0.0.1:5000/api/auth_user",
 								{method: 'POST',
 								 body: JSON.stringify({'username': username,
 														'password': password})});
@@ -88,11 +100,11 @@ class Belay extends React.Component {
 			.then(data => {
 				if (data['success']) {
 					// let auth_key = data['auth_key'];
-					window.history.pushState({},"", "http://127.0.0.1:5000/channels");
+					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
-						isAuth: true,
-						path: "/channels"});
+						isAuth: true});
+						// path: "/channels"});
 				}
 				else {
 					console.log("Please enter a valid username and password.");
@@ -105,6 +117,7 @@ class Belay extends React.Component {
 class Login extends React.Component {
 	// displays login page
 	render() {
+		// let new_path = "/channels";
 		return (
 			<div className="auth container">
 				<h1>Welcome to Belay!</h1>
