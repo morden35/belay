@@ -1,15 +1,3 @@
-// window.addEventListener("popstate", ()=>{
-// 	let newPath = window.location.path
-// 	newPathSetter(newPath, false)
-//   })
-
-// const newPathSetter = (newPath, pushToHistory=false) => {
-// 	Belay.setState({path: newPath});
-// 	if(pushToHistory) {
-// 	  window.history.pushState({path: newPath},"", newPath);
-// 	}
-// }
-
 class Belay extends React.Component {
 	// contains the entire app
 	constructor(props) {
@@ -22,8 +10,23 @@ class Belay extends React.Component {
 			path: window.location.pathname
 		}
 		console.log(this.state.path);
+
+		window.addEventListener("popstate", (event)=>{
+			console.log(event);
+			// console.log(window.location.pathname);
+			let newPath = window.location.pathname;
+			this.newPathSetter(newPath, false)
+		});
 	}
 
+	newPathSetter(newPath, pushToHistory=false) {
+		console.log("setting new path")
+		this.setState({path: newPath});
+		if(pushToHistory) {
+			window.history.pushState({path: newPath},"", newPath);
+		}
+	}
+	
 
 
 	render() {
@@ -36,14 +39,14 @@ class Belay extends React.Component {
 		return (
 			<Login
 			 createUser={() => this.createUsername()}
-			 loginUser={() => this.login()}/>
-			//  setNewPath={() => this.newPathSetter()}/>
+			 loginUser={() => this.login()}
+			 setNewPath={() => this.newPathSetter()}/>
 		);
 	}
 	
-	createChannel() {
-		// TO DO
-	}
+	// createChannel() {
+	// 	// TO DO
+	// }
 
 	createUsername() {
 		console.log("Creating new user");
@@ -114,8 +117,8 @@ class Login extends React.Component {
 					<input id="password"></input>
 				</div>
 				<div id="buttons">
-					<button id="login" onClick={() => this.props.loginUser()}>Log In</button>
-					<button id="create" onClick={() => this.props.createUser()}>Create Account</button>
+					<button id="login" onClick={() => {this.props.loginUser(); this.props.setNewPath();}}>Log In</button>
+					<button id="create" onClick={() => {this.props.createUser(); this.props.setNewPath();}}>Create Account</button>
 				</div>
 			</div>
 		);
