@@ -32,6 +32,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # TODO: Include any other routes your app might send users to
 @app.route('/')
+@app.route('/channels')
 # @app.route('/login') # these are for page refreshes (not history)
 # @app.route('/chat/<int:chat_id>')
 def index(chat_id=None):
@@ -41,7 +42,7 @@ def index(chat_id=None):
 # -------------------------------- API ROUTES ----------------------------------
 
 # TODO: Create the API
-@app.route('/create_user', methods=['POST'])
+@app.route('/api/create_user', methods=['POST'])
 def create_user():
     data = json.loads(request.data)
     username = data['username']
@@ -49,7 +50,8 @@ def create_user():
     
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
-    # print("users before:", users)
+    users = [user[0] for user in users]
+    print("users before:", users)
 
     if username in users:
         return jsonify({'success': False})
@@ -67,7 +69,7 @@ def create_user():
     return jsonify({'success': True})
 
 
-@app.route('/auth_user', methods=['POST'])
+@app.route('/api/auth_user', methods=['POST'])
 def auth_user():
     data = json.loads(request.data)
     username = data['username']
@@ -80,7 +82,7 @@ def auth_user():
                 AND password_ = (?)
                 ''',
                 (username, password)).fetchall()
-    # print(user)
+    print(user)
 
     if len(user) > 0:
         return jsonify({'success': True})

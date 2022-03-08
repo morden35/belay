@@ -17,6 +17,7 @@ create table messages (
   message_id INTEGER PRIMARY KEY AUTOINCREMENT,
   channel_id INTEGER,
   body TEXT,
-  author TEXT,
+  author_name TEXT,
+  author_id INTEGER,
   FOREIGN KEY(channel_id) REFERENCES channels(id)
 );
