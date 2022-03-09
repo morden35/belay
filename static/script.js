@@ -43,7 +43,8 @@ class Belay extends React.Component {
 		if (this.state.path == "/channels") {
 			return (
 				<Channels
-				createChannel={() => this.createChannel()}/>
+				createChannel={(channel_name) => this.createChannel(channel_name)}
+				getChannels={() => this.startChannelPolling()}/>
 			);
 		}
 		return (
@@ -53,30 +54,72 @@ class Belay extends React.Component {
 			 setNewPath={() => this.newPathSetter("/channels", true)}/>
 		);
 	}
+
+	getChannels() {
+		let request = fetch("http://127.0.0.1:5000/get_channels",
+							{method: 'GET'});
+							// body: JSON.stringify({'chat_id': chat_id})});
+		return request
+	}
 	
-	// createChannel() {
-	// 	let localStorage = window.localStorage;
-	// 	let auth_key = localStorage.getItem('auth_key');
+	startChannelPolling() {
+		// let queryString = window.location.search;
+		// let path = 
+		// let urlParams = new URLSearchParams(queryString);
+		// let chat_id = urlParams.get('chat_id');
+	
+		// look up at url bar?
+		// if (this.state.path == "/channels") {
+		this.getChannels().then((response) => response.json())
+		.then(data => {
+			let channels = data["channels"];
+		
+			// first, remove all messages from html
+			let channels_div = document.getElementById("channel_list"); // [0]
+			while (channels_div.firstChild) {
+				channels_div.removeChild(channels_div.firstChild);
+			}
+			// re-populate page with 'new' messages
+			for (let channel of channels) {
+				let c = document.createElement("li");
+			
+				let c_name = document.createTextNode(channel[1]);
+				c.appendChild(c_name);
+			
+				channels_div.appendChild(c);
+			}
+		})
+		.then(() => {this.startChannelPolling()});
+		// }
+	}
+
+	createChannel(channel_name) {
+		let localStorage = window.localStorage;
+		let auth_key = localStorage.getItem('auth_key_morden');
+		console.log(auth_key);
+		console.log("CHANNEL NAME");
+		console.log(channel_name);
+		// need to supply channel name
 	  
-	// 	let data = {'auth_key': auth_key};
-	  
-	// 	let request = fetch("http://127.0.0.1:5000/api/create_channel",
-	// 						{method: 'POST',
-	// 						 body: JSON.stringify(data)});
-	// 	request.then((response) => response.json())
-	// 	.then(data => {
-	// 		if (!data['success']) {
-	// 			console.log("You need a valid authorization key to create a new chat.");
-	// 			loadLoginPage();
-	// 		}
-	// 		  else {
-	// 			let chat_id = data['chat_id'];
-	// 			let new_url = "http://127.0.0.1:5000/chat/" + chat_id + "?chat_id=" + chat_id;
-	// 			history.pushState({}, "", new_url);
-	// 			loadChatsPage();
-	// 	  }
-	// 	});
-	// }
+		let request = fetch("http://127.0.0.1:5000/api/create_channel",
+							{method: 'POST',
+							 headers: {'Auth-Key': auth_key},
+							 body: JSON.stringify({'channel_name': channel_name})});
+		request.then((response) => response.json())
+		.then(data => {
+			if (!data['success']) {
+				console.log("You need a valid authorization key and unique channel name to create a new channel.");
+				// loadLoginPage();
+			}
+			else {
+				console.log("made new channel");
+				// push channel name to history and nav bar
+				let new_path = "/channels/" + channel_name
+				// this.newPathSetter(new_path, true)
+				// loadChatsPage();
+		  }
+		});
+	}
 
 	createUsername() {
 		console.log("Creating new user");
@@ -168,19 +211,35 @@ class Login extends React.Component {
 
 class Channels extends React.Component {
 	// displays available channels
+	prompt_for_channel_name() {
+		let channel_name = prompt("Enter new channel name:");
+		console.log(channel_name);
+		if (channel_name) {
+			this.props.createChannel(channel_name);
+		}
+	}
+	
+	componentDidMount() {
+		// this.props.getChannels();
+	}
+
+	// componentWillUnmount() {
+	// 	this.props.getChannels(false);
+	// }
+
 	render() {
+		// let channels = this.props.getChannels();
 		return (
 			<div>
 				<h1>Belay</h1>
 				<div id="new_channel">
-					<button id="new_channel_button" onClick={() => this.props.createChannel()}>New Channel</button>
+					{/* () => this.props.createChannel() */}
+					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
 				</div>
 				<div id="channels">
 					<div id="join">
 						<h2>Join a Channel</h2>
-						<ul>
-							<li>Channel 1</li>
-							<li>Channel 2</li>
+						<ul id="channel_list">
 						</ul>
 					</div>
 					<div id="chat">

@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify
 from functools import wraps
 import json
 import sqlite3
+import bcrypt
 
 con = sqlite3.connect('db/belay.db', check_same_thread=False)
 
@@ -47,6 +48,12 @@ def create_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password']
+    
+    # hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    # print(hashed)
+
+    # password = (password + PEPPER).encode('utf-8')
+    
     auth_key = ''.join(random.choices(string.digits, k=10))
     
     cur = con.cursor()
@@ -61,7 +68,9 @@ def create_user():
     # unique_usernames.add(username)
     # usernames_to_keys[username] = auth_key
     # add user to db
-    cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)", (username, password, auth_key))
+    cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)",
+                # (username, hashed, auth_key))
+                (username, password, auth_key))
     # users = cur.execute("SELECT * from users").fetchall()
     # print("users after:", users)
     cur.close()
@@ -75,14 +84,19 @@ def auth_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password']
+
+    # bcrypt.checkpw(password, hashed)
+    # hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    # print(hashed)
     
     cur = con.cursor()
     user = cur.execute('''
-                SELECT * from users
+                SELECT * FROM users
                 WHERE username = (?)
                 AND password_ = (?)
                 ''',
                 (username, password)).fetchall()
+                # (username, hashed)).fetchall()
     print(user)
 
     if len(user) > 0:
@@ -91,21 +105,51 @@ def auth_user():
 
 
 @app.route('/api/create_channel', methods=['POST'])
-def create_chat():
+def create_channel():
+    header = request.headers
     data = json.loads(request.data)
-    auth_key = data['auth_key']
+    print(header)
+    auth_key = header['Auth-Key']
+    print(auth_key)
+    channel_name = data['channel_name']
+    print(channel_name)
 
-    if auth_key in users.keys():
-        chat_id = str(len(chats))
-        new_chat = newChat(auth_key)
-        chats[chat_id] = new_chat
-        chats[chat_id]["magic_link"] = chats[chat_id]["magic_link"] + chat_id + "?magic_key=" + chats[chat_id]["magic_passphrase"] + "&chat_id=" + chat_id
-        users[auth_key]['chats'].append(chat_id)
+    # first, authenticate user
+    cur = con.cursor()
+    # user = cur.execute('''
+    #                     SELECT auth_key FROM users
+    #                     WHERE auth_key = (?)
+    #                     ''',
+    #                     (auth_key)).fetchall()
+    # print(user)
+    # users = [user[0] for user in users]
 
-        return jsonify({'chat_id': chat_id,
-                        'magic_link': chats[chat_id]["magic_link"],
-                        'success': True})
+    # now create channel
+    # if auth_key in users:
+        # check if channel_name already exists
+    channels = cur.execute('''SELECT channel_name FROM channels''')
+    channel_names = [channel[0] for channel in channels]
+    if channel_name not in channel_names:
+        cur.execute('''INSERT INTO channels
+                        (channel_name)
+                        VALUES (?)''', (channel_name,))
+        cur.close()
+        return jsonify({'success': True})
+    cur.close()
     return jsonify({'success': False})
+
+
+@app.route('/get_channels', methods=['GET'])
+def get_channels():
+    # data = json.loads(request.data)
+    # chat_id = data['chat_id']
+    # messages = chats[chat_id]['messages'][-30:]    
+    cur = con.cursor()
+    channels = cur.execute('''SELECT * FROM channels''').fetchall()
+    print(channels)
+    cur.close()
+
+    return {"channels": channels}
 
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
@@ -169,3 +213,7 @@ def create_chat():
 #     chat_id = data['chat_id']
 #     messages = chats[chat_id]['messages'][-30:]    
 #     return {"messages": messages}
+
+# if __name__ == '__main__':
+#   app.run(debug = True, host = '0.0.0.0')
+# http://127.0.0.1:5000/
