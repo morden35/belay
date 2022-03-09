@@ -47,6 +47,7 @@ def create_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password']
+    auth_key = ''.join(random.choices(string.digits, k=10))
     
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
@@ -60,13 +61,13 @@ def create_user():
     # unique_usernames.add(username)
     # usernames_to_keys[username] = auth_key
     # add user to db
-    cur.execute("INSERT INTO users (username, password_) VALUES (?, ?)", (username, password))
-    users = cur.execute("SELECT * from users").fetchall()
+    cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)", (username, password, auth_key))
+    # users = cur.execute("SELECT * from users").fetchall()
     # print("users after:", users)
     cur.close()
 
     # users[auth_key] = {'username': username, 'password': password, 'chats': []}
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'auth_key': auth_key})
 
 
 @app.route('/api/auth_user', methods=['POST'])
@@ -85,9 +86,26 @@ def auth_user():
     print(user)
 
     if len(user) > 0:
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'auth_key': user[0][3]})
     return jsonify({'success': False})
 
+
+@app.route('/api/create_channel', methods=['POST'])
+def create_chat():
+    data = json.loads(request.data)
+    auth_key = data['auth_key']
+
+    if auth_key in users.keys():
+        chat_id = str(len(chats))
+        new_chat = newChat(auth_key)
+        chats[chat_id] = new_chat
+        chats[chat_id]["magic_link"] = chats[chat_id]["magic_link"] + chat_id + "?magic_key=" + chats[chat_id]["magic_passphrase"] + "&chat_id=" + chat_id
+        users[auth_key]['chats'].append(chat_id)
+
+        return jsonify({'chat_id': chat_id,
+                        'magic_link': chats[chat_id]["magic_link"],
+                        'success': True})
+    return jsonify({'success': False})
 
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
@@ -122,25 +140,6 @@ def auth_user():
 #     chats = users[auth_key]['chats']
 
 #     return jsonify({'chats': chats})
-
-
-# @app.route('/create_chat', methods=['POST'])
-# def create_chat():
-#     data = json.loads(request.data)
-#     auth_key = data['auth_key']
-
-#     if auth_key in users.keys():
-#         chat_id = str(len(chats))
-#         new_chat = newChat(auth_key)
-#         chats[chat_id] = new_chat
-#         chats[chat_id]["magic_link"] = chats[chat_id]["magic_link"] + chat_id + "?magic_key=" + chats[chat_id]["magic_passphrase"] + "&chat_id=" + chat_id
-#         users[auth_key]['chats'].append(chat_id)
-
-#         return jsonify({'chat_id': chat_id,
-#                         'magic_link': chats[chat_id]["magic_link"],
-#                         'success': True})
-#     return jsonify({'success': False})
-
 
 # @app.route('/get_magic_link', methods=['POST'])
 # def get_magic_link():

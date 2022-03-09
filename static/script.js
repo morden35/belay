@@ -5,11 +5,11 @@ class Belay extends React.Component {
 		this.state = {
 			username: null,
 			password: null,
-			// auth_key: null,
+			auth_key: null,
 			isAuth: false,
 			path: window.location.pathname
 		}
-		console.log(this.state.path);
+		// console.log(this.state.path);
 
 		window.addEventListener("popstate", (event)=>{
 			console.log(event);
@@ -55,7 +55,27 @@ class Belay extends React.Component {
 	}
 	
 	// createChannel() {
-	// 	// TO DO
+	// 	let localStorage = window.localStorage;
+	// 	let auth_key = localStorage.getItem('auth_key');
+	  
+	// 	let data = {'auth_key': auth_key};
+	  
+	// 	let request = fetch("http://127.0.0.1:5000/api/create_channel",
+	// 						{method: 'POST',
+	// 						 body: JSON.stringify(data)});
+	// 	request.then((response) => response.json())
+	// 	.then(data => {
+	// 		if (!data['success']) {
+	// 			console.log("You need a valid authorization key to create a new chat.");
+	// 			loadLoginPage();
+	// 		}
+	// 		  else {
+	// 			let chat_id = data['chat_id'];
+	// 			let new_url = "http://127.0.0.1:5000/chat/" + chat_id + "?chat_id=" + chat_id;
+	// 			history.pushState({}, "", new_url);
+	// 			loadChatsPage();
+	// 	  }
+	// 	});
 	// }
 
 	createUsername() {
@@ -71,13 +91,18 @@ class Belay extends React.Component {
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {
-					console.log("also setting state");
-					// let auth_key = data['auth_key'];
+					// console.log("also setting state");
+					let auth_key = data['auth_key'];
+					let localStorage = window.localStorage;
+					localStorage.setItem("auth_key_morden", auth_key);
+					localStorage.setItem("username_morden", username);
+
 					// newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
-								   isAuth: true});
+								   isAuth: true,
+								   auth_key: auth_key});
 								//    path: "/channels"});
 				}
 				else {
@@ -99,11 +124,15 @@ class Belay extends React.Component {
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {
-					// let auth_key = data['auth_key'];
+					let auth_key = data['auth_key'];
+					let localStorage = window.localStorage;
+					localStorage.setItem("auth_key_morden", auth_key);
+					localStorage.setItem("username_morden", username);
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
-						isAuth: true});
+						isAuth: true,
+						auth_key: auth_key});
 						// path: "/channels"});
 				}
 				else {
@@ -144,9 +173,7 @@ class Channels extends React.Component {
 			<div>
 				<h1>Belay</h1>
 				<div id="new_channel">
-					{/* () => this.props.createChannel() */}
-					{/* onClick={} */}
-					<button id="new_channel_button">New Channel</button>
+					<button id="new_channel_button" onClick={() => this.props.createChannel()}>New Channel</button>
 				</div>
 				<div id="channels">
 					<div id="join">

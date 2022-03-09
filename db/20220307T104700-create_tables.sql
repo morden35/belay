@@ -5,7 +5,8 @@ DROP TABLE IF EXISTS messages;
 create table users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL,
-  password_ TEXT NOT NULL
+  password_ TEXT NOT NULL,
+  auth_key TEXT NOT NULL
 );
 
 create table channels (
