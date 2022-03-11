@@ -50,7 +50,6 @@ def create_user():
     password = data['password'].encode('utf-8')
     
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    # print(hashed)
     
     auth_key = ''.join(random.choices(string.digits, k=10))
     
@@ -60,16 +59,16 @@ def create_user():
     # print("users before:", users)
 
     if username in users:
+        print("USERNAME IN DB")
         return jsonify({'success': False})
 
     # add user to db
     cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)",
                 (username, hashed, auth_key))
-    users = cur.execute("SELECT * from users").fetchall()
+    # users = cur.execute("SELECT * from users").fetchall()
     # print("users after:", users)
     cur.close()
 
-    # users[auth_key] = {'username': username, 'password': password, 'chats': []}
     return jsonify({'success': True, 'auth_key': auth_key})
 
 
@@ -78,23 +77,16 @@ def auth_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password'].encode('utf-8')
-
-    # bcrypt.checkpw(password, hashed)
-    # hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    # print(hashed)
     
     cur = con.cursor()
-
     user = cur.execute('''
                         SELECT * FROM users
                         WHERE username = (?)
                         ''',
                         (username, )).fetchone()
-    # print("checking if user in db", user)
-    hashed = user[2] # .encode('utf-8')
+    hashed = user[2]
 
     if bcrypt.checkpw(password, hashed):
-        # print("Auth successful")
         return jsonify({'success': True, 'auth_key': user[3]})
     return jsonify({'success': False})
 
@@ -103,33 +95,31 @@ def auth_user():
 def create_channel():
     header = request.headers
     data = json.loads(request.data)
-    print(header)
     auth_key = header['Auth-Key']
-    print(auth_key)
+    # print("auth_key", auth_key)
     channel_name = data['channel_name']
-    print(channel_name)
 
     # first, authenticate user
     cur = con.cursor()
-    # user = cur.execute('''
-    #                     SELECT auth_key FROM users
-    #                     WHERE auth_key = (?)
-    #                     ''',
-    #                     (auth_key)).fetchall()
-    # print(user)
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    # print("user", stored_auth_key)
     # users = [user[0] for user in users]
-
-    # now create channel
-    # if auth_key in users:
+    if stored_auth_key == auth_key:
+        # print('user is authenticated')
         # check if channel_name already exists
-    channels = cur.execute('''SELECT channel_name FROM channels''')
-    channel_names = [channel[0] for channel in channels]
-    if channel_name not in channel_names:
-        cur.execute('''INSERT INTO channels
-                        (channel_name)
-                        VALUES (?)''', (channel_name,))
-        cur.close()
-        return jsonify({'success': True})
+        channels = cur.execute("SELECT channel_name FROM channels").fetchall()
+        channel_names = [channel[0] for channel in channels]
+        if channel_name not in channel_names:
+            # now create channel
+            cur.execute('''INSERT INTO channels
+                            (channel_name)
+                            VALUES (?)''', (channel_name,))
+            cur.close()
+            return jsonify({'success': True})
     cur.close()
     return jsonify({'success': False})
 

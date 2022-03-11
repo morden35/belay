@@ -50,8 +50,8 @@ class Belay extends React.Component {
 		return (
 			<Login
 			 createUser={() => this.createUsername()}
-			 loginUser={() => this.login()}
-			 setNewPath={() => this.newPathSetter("/channels", true)}/>
+			 loginUser={() => this.login()}/>
+			//  setNewPath={() => this.newPathSetter("/channels", true)}/>
 		);
 	}
 
@@ -109,14 +109,13 @@ class Belay extends React.Component {
 		.then(data => {
 			if (!data['success']) {
 				console.log("You need a valid authorization key and unique channel name to create a new channel.");
-				// loadLoginPage();
 			}
 			else {
 				console.log("made new channel");
 				// push channel name to history and nav bar
 				let new_path = "/channels/" + channel_name
-				// this.newPathSetter(new_path, true)
-				// loadChatsPage();
+				this.newPathSetter(new_path, true)
+				// load new chat page
 		  }
 		});
 	}
@@ -133,6 +132,8 @@ class Belay extends React.Component {
 													   'password': password})});
 			request.then((response) => response.json())
 			.then(data => {
+				console.log(data);
+				console.log(data['success']);
 				if (data['success']) {
 					// console.log("also setting state");
 					let auth_key = data['auth_key'];
@@ -140,7 +141,7 @@ class Belay extends React.Component {
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
 
-					// newPathSetter("/channels", true)
+					this.newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
@@ -171,6 +172,8 @@ class Belay extends React.Component {
 					let localStorage = window.localStorage;
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
+
+					this.newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 						password: password,
@@ -201,8 +204,9 @@ class Login extends React.Component {
 					<input id="password"></input>
 				</div>
 				<div id="buttons">
-					<button id="login" onClick={() => {this.props.loginUser(); this.props.setNewPath();}}>Log In</button>
-					<button id="create" onClick={() => {this.props.createUser(); this.props.setNewPath();}}>Create Account</button>
+					{/* this.props.setNewPath(); */}
+					<button id="login" onClick={() => this.props.loginUser()}>Log In</button>
+					<button id="create" onClick={() => this.props.createUser()}>Create Account</button>
 				</div>
 			</div>
 		);
