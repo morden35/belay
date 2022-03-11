@@ -47,31 +47,25 @@ def index(chat_id=None):
 def create_user():
     data = json.loads(request.data)
     username = data['username']
-    password = data['password']
+    password = data['password'].encode('utf-8')
     
-    # hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     # print(hashed)
-
-    # password = (password + PEPPER).encode('utf-8')
     
     auth_key = ''.join(random.choices(string.digits, k=10))
     
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
     users = [user[0] for user in users]
-    print("users before:", users)
+    # print("users before:", users)
 
     if username in users:
         return jsonify({'success': False})
 
-    # auth_key = ''.join(random.choices(string.digits, k=10))
-    # unique_usernames.add(username)
-    # usernames_to_keys[username] = auth_key
     # add user to db
     cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)",
-                # (username, hashed, auth_key))
-                (username, password, auth_key))
-    # users = cur.execute("SELECT * from users").fetchall()
+                (username, hashed, auth_key))
+    users = cur.execute("SELECT * from users").fetchall()
     # print("users after:", users)
     cur.close()
 
@@ -83,24 +77,25 @@ def create_user():
 def auth_user():
     data = json.loads(request.data)
     username = data['username']
-    password = data['password']
+    password = data['password'].encode('utf-8')
 
     # bcrypt.checkpw(password, hashed)
     # hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     # print(hashed)
     
     cur = con.cursor()
-    user = cur.execute('''
-                SELECT * FROM users
-                WHERE username = (?)
-                AND password_ = (?)
-                ''',
-                (username, password)).fetchall()
-                # (username, hashed)).fetchall()
-    print(user)
 
-    if len(user) > 0:
-        return jsonify({'success': True, 'auth_key': user[0][3]})
+    user = cur.execute('''
+                        SELECT * FROM users
+                        WHERE username = (?)
+                        ''',
+                        (username, )).fetchone()
+    # print("checking if user in db", user)
+    hashed = user[2] # .encode('utf-8')
+
+    if bcrypt.checkpw(password, hashed):
+        # print("Auth successful")
+        return jsonify({'success': True, 'auth_key': user[3]})
     return jsonify({'success': False})
 
 
@@ -146,7 +141,7 @@ def get_channels():
     # messages = chats[chat_id]['messages'][-30:]    
     cur = con.cursor()
     channels = cur.execute('''SELECT * FROM channels''').fetchall()
-    print(channels)
+    # print(channels)
     cur.close()
 
     return {"channels": channels}
