@@ -117,6 +117,46 @@ def get_channels():
 
     return {"channels": channels}
 
+
+@app.route('/post_message', methods=['POST'])
+def post_message():
+    header = request.headers
+    data = json.loads(request.data)
+    
+    auth_key = header['Auth-Key']
+    print(auth_key)
+    channel = data['channel']
+    print(channel)
+    text = data['text']
+    print(text)
+
+    # first, authenticate user
+    cur = con.cursor()
+    user = cur.execute('''
+                        SELECT username, auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()
+    print(user)
+    if user[1] == auth_key:
+        print('user is authenticated')
+        # get channel id
+        channel_id = cur.execute('''
+                        SELECT * FROM channels
+                        WHERE channel_name = (?)
+                        ''',
+                        (channel,)).fetchone()[0]
+        print(channel_id)
+        # post message
+        cur.execute('''INSERT INTO messages
+                        (channel_id, body, author_name, author_auth_key)
+                        VALUES (?, ?, ?, ?)''', (channel_id, text, user[0], auth_key,))
+        cur.close()
+        return jsonify({'success': True})
+    cur.close()
+    return jsonify({'success': False})
+
+
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
 #     data = json.loads(request.data)
@@ -139,36 +179,6 @@ def get_channels():
 #         chats[chat_id]['magic_passphrase'] == magic_key):
 #         chats[chat_id]["authorized_users"].add(auth_key)
 #         users[auth_key]["chats"].append(chat_id)
-#         return jsonify({'success': True})
-#     return jsonify({'success': False})
-
-
-# @app.route('/load_chats', methods=['POST'])
-# def load_chats():
-#     data = json.loads(request.data)
-#     auth_key = data['auth_key']
-#     chats = users[auth_key]['chats']
-
-#     return jsonify({'chats': chats})
-
-# @app.route('/get_magic_link', methods=['POST'])
-# def get_magic_link():
-#     data = json.loads(request.data)
-#     chat_id = data['chat_id']
-#     magic_link = chats[chat_id]["magic_link"]
-#     return jsonify({'magic_link': magic_link})
-
-
-# @app.route('/post_message', methods=['POST'])
-# def post_message():
-#     data = json.loads(request.data)
-#     auth_key = data['auth_key']
-#     chat_id = data['chat_id']
-#     text = data['text']
-#     if auth_key in chats[chat_id]["authorized_users"]:
-#         chats[chat_id]["messages"].append({"user": auth_key,
-#                                             "text": text,
-#                                             "author": users[auth_key]['username']})
 #         return jsonify({'success': True})
 #     return jsonify({'success': False})
 

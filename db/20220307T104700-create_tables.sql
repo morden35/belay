@@ -19,6 +19,6 @@ create table messages (
   channel_id INTEGER,
   body TEXT,
   author_name TEXT,
-  author_id INTEGER,
+  author_auth_key INTEGER,
   FOREIGN KEY(channel_id) REFERENCES channels(id)
 );

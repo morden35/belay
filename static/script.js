@@ -7,7 +7,8 @@ class Belay extends React.Component {
 			password: null,
 			auth_key: null,
 			isAuth: false,
-			path: window.location.pathname
+			path: window.location.pathname,
+			currentChannel: null
 		}
 		// console.log(this.state.path);
 
@@ -52,7 +53,8 @@ class Belay extends React.Component {
 				<Channels
 				createChannel={(channel_name) => this.createChannel(channel_name)}
 				getChannels={() => this.startChannelPolling()}
-				view={this.state.path}/>
+				view={this.state.path}
+				postMessage={() => this.postMessage()}/>
 			);
 		}
 		else {
@@ -68,6 +70,36 @@ class Belay extends React.Component {
 
 		// 		);
 		// }
+	}
+
+	postMessage() {
+		// let queryString = window.location.search;
+		// let urlParams = new URLSearchParams(queryString);
+		// let chat_id = urlParams.get('chat_id');
+		let channel = this.state.currentChannel;
+		// get auth_key from storage
+		let auth_key = localStorage.getItem('auth_key_morden');
+	
+		let text = document.querySelector("textarea").value;
+
+		console.log(channel);
+		console.log(auth_key);
+		console.log(text);
+	  
+		let request = fetch("http://127.0.0.1:5000/post_message",
+							{method: 'POST',
+							headers: {'Auth-Key': auth_key},
+							body: JSON.stringify({'channel': channel,
+												  'text': text})});
+		request.then((response) => response.json())
+		.then(data => {
+			if (data['success']) {
+				console.log("Your message has been posted.");
+			  }
+			  else {
+				console.log("You do not have access to post messages in this chat.");
+			  }
+		});
 	}
 
 	getChannels() {
@@ -98,13 +130,12 @@ class Belay extends React.Component {
 					let channel_el = document.createElement("li");
 					let channel_button = document.createElement("button");
 					let channel_name = document.createTextNode(channel[1]);
-					
-					// function setCurrentChannel() {
-					let newPath = "/channels/" + channel[1];
-					console.log(newPath);
-					
-					// }
-					let clickHandler = () => {this.newPathSetter(newPath, true)};
+
+					let clickHandler = () => {
+						let newPath = "/channels/" + channel[1];
+						this.newPathSetter(newPath, true);
+						this.setState({currentChannel: channel[1]});
+					};
 	
 					channel_button.addEventListener("click", clickHandler);
 					channel_button.append(channel_name);
@@ -140,8 +171,9 @@ class Belay extends React.Component {
 			else {
 				console.log("made new channel");
 				// push channel name to history and nav bar
-				let new_path = "/channels/" + channel_name
-				this.newPathSetter(new_path, true)
+				let new_path = "/channels/" + channel_name;
+				this.newPathSetter(new_path, true);
+				this.state.currentChannel = channel_name;
 				// load new chat page
 		  }
 		});
@@ -287,7 +319,7 @@ class Channels extends React.Component {
 			);
 		}
 		else {
-			let chat_name = this.props.view.split("/")[2];
+			let chat_name = this.props.view.split("/")[2]; // check state instead?
 			console.log(chat_name);
 			return (
 				<div>
@@ -310,8 +342,7 @@ class Channels extends React.Component {
 										<label htmlFor="comment">What do you have to say?</label>
 										<textarea name="comment"></textarea>
 										{/* TO DO post message to channel */}
-										{/* onclick="" */}
-										<button type="button" value="Post">Post</button>
+										<button type="button" value="Post" onClick={() => this.props.postMessage()}>Post</button>
 									</form>
 								</div>
 								<div className="messages">
