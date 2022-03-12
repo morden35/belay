@@ -22,6 +22,7 @@ body {
 
 #channels {
 	display: flex;
+	height: 80%;
 	/* justify-content: space-evenly; */
 }
 
@@ -39,6 +40,7 @@ body {
 #new_channel {
 	display: flex;
 	height: 5%;
+	min-height: 40px;
 }
 
 #new_channel_button {
@@ -53,3 +55,76 @@ body {
 #new_channel_button:hover {
 	background-color: #FFF0F5;
 }
+
+ul#channel_list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+ul#channel_list button{
+	width: 30%;
+	min-width: 30px;
+}
+
+
+.chat_interface {
+	display: grid;
+	grid-template-rows: 0.5fr 1fr 5fr;
+	height: 100%;
+  }
+  
+  .chat_interface .comment_box {
+	margin: 5%;
+	/* padding-right: 20px; */
+	height: 100%;
+	/* border-right: 8px solid lightgray; */
+  }
+  
+  .chat_interface .comment_box textarea {
+	display: block;
+	width: 100%
+  }
+  
+  .chat_interface .comment_box button {
+	border-radius: 5px;
+	padding: 10px;
+	border: none;
+	margin-top: 15px;
+  }
+  
+  .chat_interface .comment_box label {
+	display: block;
+	/* font-family: 'Rowdies', cursive; */
+	margin-bottom: 10px;
+  }
+  
+  .chat_interface .messages {
+	display: grid;
+	grid-template-columns: 200px 1fr;
+	grid-template-rows: min-content;
+	grid-auto-rows: min-content;
+	height: auto;
+  }
+  
+  .chat_interface message {
+	display: grid;
+	grid-column: 1/3;
+	grid-template-columns: 200px 1fr;
+	border-bottom: 1px solid lightgray;
+  }
+  
+  .chat_interface message author {
+	color: #c93;
+	font-weight: bold;
+	display: block;
+	padding: 5px;
+	grid-column: 1/2;
+  }
+  
+  .chat_interface message content {
+	display: block;
+	padding: 5px;
+	grid-column: 2/3;
+  }
+  

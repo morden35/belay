@@ -35,8 +35,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 @app.route('/')
 @app.route('/channels')
 # @app.route('/login') # these are for page refreshes (not history)
-# @app.route('/chat/<int:chat_id>')
-def index(chat_id=None):
+@app.route('/channels/<string:channel_name>')
+def index(channel_name=None):
     return app.send_static_file('index.html')
 
 
