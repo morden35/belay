@@ -12,30 +12,11 @@ con = sqlite3.connect('db/belay.db', check_same_thread=False)
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-# You can store data on your server in whatever structure is most convenient,
-# either holding it in memory on your server or in a sqlite database.
-# You may use the sample structures below or create your own.
-
-# def newChat(host_auth_key):
-#     magic_passphrase = ''.join(random.choices(string.ascii_lowercase + string.digits, k=40))
-#     chat = {"authorized_users": set(),
-#             "magic_passphrase": magic_passphrase,
-#             "magic_link": "http://127.0.0.1:5000/chat/",
-#             "messages": []}
-#     chat["authorized_users"].add(host_auth_key)
-#     return chat
-
-
-# chats = {}
-# unique_usernames = set()
-# usernames_to_keys = {}
-# users = {}
-
 # TODO: Include any other routes your app might send users to
 @app.route('/')
 @app.route('/channels')
 # @app.route('/login') # these are for page refreshes (not history)
-@app.route('/channels/<string:channel_name>')
+# @app.route('/channels/<string:channel_name>')
 def index(channel_name=None):
     return app.send_static_file('index.html')
 

@@ -78,39 +78,46 @@ class Belay extends React.Component {
 	}
 	
 	startChannelPolling() {
-		this.getChannels().then((response) => response.json())
-		.then(data => {
-			let channels = data["channels"];
+		let path = window.location.pathname;
+		// console.log(path);
 		
-			// first, remove all messages from html
-			let channels_div = document.getElementById("channel_list"); // [0]
-			while (channels_div.firstChild) {
-				channels_div.removeChild(channels_div.firstChild);
-			}
-			// re-populate page with 'new' messages
-			for (let channel of channels) {
-				console.log(channel);
-				// console.log(channel[1]);
-				let channel_el = document.createElement("li");
-				let channel_button = document.createElement("button");
-				let channel_name = document.createTextNode(channel[1]);
-				
-				// function setCurrentChannel() {
-				let newPath = "/channels/" + channel[1];
-				console.log(newPath);
-				
-				// }
-				let clickHandler = () => {this.newPathSetter(newPath, true)};
-
-				channel_button.addEventListener("click", clickHandler);
-				channel_button.append(channel_name);
-				channel_el.appendChild(channel_button);
+		if (path != "/") {
+			this.getChannels().then((response) => response.json())
+			.then(data => {
+				let channels = data["channels"];
 			
-				channels_div.appendChild(channel_el);
-			}
-		});
-		// .then(() => {this.startChannelPolling()});
-		// }
+				// first, remove all messages from html
+				let channels_div = document.getElementById("channel_list"); // [0]
+				while (channels_div.firstChild) {
+					channels_div.removeChild(channels_div.firstChild);
+				}
+				// re-populate page with 'new' messages
+				for (let channel of channels) {
+					console.log(channel);
+					// console.log(channel[1]);
+					let channel_el = document.createElement("li");
+					let channel_button = document.createElement("button");
+					let channel_name = document.createTextNode(channel[1]);
+					
+					// function setCurrentChannel() {
+					let newPath = "/channels/" + channel[1];
+					console.log(newPath);
+					
+					// }
+					let clickHandler = () => {this.newPathSetter(newPath, true)};
+	
+					channel_button.addEventListener("click", clickHandler);
+					channel_button.append(channel_name);
+					channel_el.appendChild(channel_button);
+				
+					channels_div.appendChild(channel_el);
+				}
+			});
+			// .then(() => {
+				// this.startChannelPolling();
+				// let timout = setTimeout(this.startChannelPolling(), 1000);
+			// });
+		}
 	}
 
 	createChannel(channel_name) {
@@ -235,6 +242,10 @@ class Login extends React.Component {
 
 
 class Channels extends React.Component {
+	constructor(props) {
+		super(props)
+		this.interval = null
+	  }
 	// displays available channels
 	prompt_for_channel_name() {
 		let channel_name = prompt("Enter new channel name:");
@@ -245,12 +256,13 @@ class Channels extends React.Component {
 	}
 	
 	componentDidMount() {
-		let interval = setInterval(this.props.getChannels, 100);
+		// this.props.getChannels();
+		this.interval = setInterval(this.props.getChannels, 1000);
 	}
 
-	// componentWillUnmount() {
-	// 	this.props.getChannels(false);
-	// }
+	componentWillUnmount() {
+		clearInterval(this.interval);
+	}
 
 	render() {
 		// let channels = this.props.getChannels();
@@ -291,17 +303,18 @@ class Channels extends React.Component {
 							</ul>
 						</div>
 						<div id="chat">
-							<div class="chat_interface">
+							<div className="chat_interface">
 								<h2>{chat_name}</h2>
-								<div class="comment_box">
+								<div className="comment_box">
 									<form>
-										<label for="comment">What do you have to say?</label>
+										<label htmlFor="comment">What do you have to say?</label>
 										<textarea name="comment"></textarea>
 										{/* TO DO post message to channel */}
-										<button type="button" value="Post" onclick="">Post</button>
+										{/* onclick="" */}
+										<button type="button" value="Post">Post</button>
 									</form>
 								</div>
-								<div class="messages">
+								<div className="messages">
 									{/* TO DO load messages */}
 								</div>
 							</div>
