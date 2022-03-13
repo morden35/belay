@@ -226,6 +226,22 @@ def get_message():
     # messages = chats[chat_id]['messages'][-30:]    
     return {"message": message}
 
+
+@app.route('/get_replies', methods=['POST'])
+def get_replies():
+    data = json.loads(request.data)
+    message_id = data['message_id']
+
+    cur = con.cursor()
+    replies = cur.execute('''SELECT * FROM replies
+                          WHERE message_id = (?)
+                          ''',
+                          (message_id,)).fetchall()
+    # print(channels)
+    cur.close()
+
+    return {"replies": replies}
+
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
 #     data = json.loads(request.data)

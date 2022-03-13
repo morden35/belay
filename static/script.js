@@ -67,7 +67,8 @@ class Belay extends React.Component {
 				postReply={() => this.postReply()}
 				currentChannel={this.state.currentChannel}
 				currentChannelID={this.state.currentChannelID}
-				getSingleMessage={() => this.getSingleMessage()}/>
+				getSingleMessage={() => this.getSingleMessage()}
+				startReplyPolling = {() => this.startReplyPolling()}/>
 			);
 		}
 		else {
@@ -83,6 +84,57 @@ class Belay extends React.Component {
 
 		// 		);
 		// }
+	}
+	
+	getReplies() {
+		// console.log(this.currentChannelID);
+		let request = fetch("http://127.0.0.1:5000/get_replies",
+							{method: 'POST',
+							body: JSON.stringify({'message_id': this.state.currentMessageID})});
+		return request
+	}
+
+	startReplyPolling() {
+		// let path = window.location.pathname;
+		// console.log("polling?");
+		// console.log(this.state.currentChannelID);
+		
+		if (this.state.currentMessageID) {
+			this.getReplies().then((response) => response.json())
+			.then(data => {
+				let replies = data["replies"];
+			
+				// first, remove all messages from html
+				let reply_div = document.getElementsByClassName("messages")[0];
+				// let reply_div = document.getElementById("replies"); // [0]
+				while (reply_div.firstChild) {
+					reply_div.removeChild(reply_div.firstChild);
+				}
+				// re-populate page with 'new' messages
+				for (let reply of replies) {
+					// console.log(channel);
+					// console.log(channel[1]);
+					let message_el = document.createElement("message");
+					let author_el = document.createElement("author");
+					let content = document.createElement("content");
+
+					let author = document.createTextNode(reply[2]);
+					let message_body = document.createTextNode(reply[1]);
+
+					author_el.appendChild(author);
+					content.appendChild(message_body);
+
+					message_el.appendChild(author_el);
+					message_el.appendChild(content);
+
+					reply_div.appendChild(message_el);
+				}
+			});
+			// .then(() => {
+				// this.startChannelPolling();
+				// let timout = setTimeout(this.startChannelPolling(), 1000);
+			// });
+		}
 	}
 
 	getSingleMessage() {
@@ -202,7 +254,6 @@ class Belay extends React.Component {
 		return request
 	}
 
-	// TO DO
 	startMessagePolling() {
 		// let path = window.location.pathname;
 		// console.log("polling?");
@@ -536,6 +587,7 @@ class Replies extends React.Component {
 	constructor(props) {
 		super(props)
 		this.channelInterval = null
+		this.replyInterval = null
 		// this.messageInterval = null
 	  }
 
@@ -549,11 +601,13 @@ class Replies extends React.Component {
 	componentDidMount() {
 		this.props.getSingleMessage();
 		this.channelInterval = setInterval(this.props.getChannels, 500);
+		this.replyInterval = setInterval(this.props.startReplyPolling, 500); // might not need interval here since no buttons
 		// this.messageInterval = setInterval(this.props.getMessages, 500);
 	}
 
 	componentWillUnmount() {
 		clearInterval(this.channelInterval);
+		clearInterval(this.replyInterval);
 		// clearInterval(this.messageInterval);
 	}
 
@@ -572,7 +626,7 @@ class Replies extends React.Component {
 						</ul>
 					</div>
 					<div id="channel">
-						{/* <div className="channel_interface"> */}
+						<div className="reply_interface">
 							<h2>{this.props.currentChannel}</h2>
 							<message id="message">
 							</message>
@@ -584,7 +638,10 @@ class Replies extends React.Component {
 									<button type="button" value="Post" onClick={() => this.props.postReply()}>Post</button>
 								</form>
 							</div>
-						{/* </div> */}
+							<div className="messages">
+									{/* TO DO load messages */}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
