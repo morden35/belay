@@ -8,7 +8,8 @@ class Belay extends React.Component {
 			auth_key: null,
 			isAuth: false,
 			path: window.location.pathname,
-			currentChannel: null
+			currentChannel: null,
+			currentChannelID: null
 		}
 		// console.log(this.state.path);
 
@@ -32,8 +33,8 @@ class Belay extends React.Component {
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
-		console.log("setting new path");
-		console.log(newPath);
+		// console.log("setting new path");
+		// console.log(newPath);
 		this.setState({path: newPath});
 		if(pushToHistory) {
 			window.history.pushState({path: newPath},"", newPath);
@@ -54,7 +55,8 @@ class Belay extends React.Component {
 				createChannel={(channel_name) => this.createChannel(channel_name)}
 				getChannels={() => this.startChannelPolling()}
 				view={this.state.path}
-				postMessage={() => this.postMessage()}/>
+				postMessage={() => this.postMessage()}
+				getMessages={() => this.startMessagePolling()}/>
 			);
 		}
 		else {
@@ -82,9 +84,9 @@ class Belay extends React.Component {
 	
 		let text = document.querySelector("textarea").value;
 
-		console.log(channel);
-		console.log(auth_key);
-		console.log(text);
+		// console.log(channel);
+		// console.log(auth_key);
+		// console.log(text);
 	  
 		let request = fetch("http://127.0.0.1:5000/post_message",
 							{method: 'POST',
@@ -100,6 +102,59 @@ class Belay extends React.Component {
 				console.log("You do not have access to post messages in this chat.");
 			  }
 		});
+	}
+
+	getMessages() {
+		// console.log(this.currentChannelID);
+		let request = fetch("http://127.0.0.1:5000/get_messages",
+							{method: 'POST',
+							body: JSON.stringify({'channel_id': this.state.currentChannelID})});
+		return request
+	}
+
+	// TO DO
+	startMessagePolling() {
+		// let path = window.location.pathname;
+		console.log("polling?");
+		console.log(this.state.currentChannelID);
+		
+		if (this.state.currentChannelID) {
+			this.getMessages().then((response) => response.json())
+			.then(data => {
+				let messages = data["messages"];
+			
+				// first, remove all messages from html
+				let message_div = document.getElementsByClassName("messages")[0];
+				while (message_div.firstChild) {
+					message_div.removeChild(message_div.firstChild);
+				}
+				// re-populate page with 'new' messages
+				for (let message of messages) {
+					// console.log(channel);
+					// console.log(channel[1]);
+					let message_el = document.createElement("p");
+					// let message_button = document.createElement("button");
+					let message_body = document.createTextNode(message[2]);
+
+					// let clickHandler = () => {
+					// 	let newPath = "/channels/" + channel[1];
+					// 	this.newPathSetter(newPath, true);
+					// 	this.setState({currentChannel: channel[1],
+					// 				   currentChannelID: channel[0]});
+					// };
+	
+					// channel_button.addEventListener("click", clickHandler);
+					// channel_button.append(channel_name);
+					message_el.appendChild(message_body);
+				
+					message_div.appendChild(message_el);
+				}
+			});
+			// .then(() => {
+				// this.startChannelPolling();
+				// let timout = setTimeout(this.startChannelPolling(), 1000);
+			// });
+		}
 	}
 
 	getChannels() {
@@ -125,7 +180,7 @@ class Belay extends React.Component {
 				}
 				// re-populate page with 'new' messages
 				for (let channel of channels) {
-					console.log(channel);
+					// console.log(channel);
 					// console.log(channel[1]);
 					let channel_el = document.createElement("li");
 					let channel_button = document.createElement("button");
@@ -134,7 +189,8 @@ class Belay extends React.Component {
 					let clickHandler = () => {
 						let newPath = "/channels/" + channel[1];
 						this.newPathSetter(newPath, true);
-						this.setState({currentChannel: channel[1]});
+						this.setState({currentChannel: channel[1],
+									   currentChannelID: channel[0]});
 					};
 	
 					channel_button.addEventListener("click", clickHandler);
@@ -152,6 +208,7 @@ class Belay extends React.Component {
 	}
 
 	createChannel(channel_name) {
+		// console.log("CREATING CHANNEL");
 		let localStorage = window.localStorage;
 		let auth_key = localStorage.getItem('auth_key_morden');
 		// console.log(auth_key);
@@ -165,22 +222,29 @@ class Belay extends React.Component {
 							 body: JSON.stringify({'channel_name': channel_name})});
 		request.then((response) => response.json())
 		.then(data => {
+			console.log(data);
 			if (!data['success']) {
 				console.log("You need a valid authorization key and unique channel name to create a new channel.");
 			}
 			else {
-				console.log("made new channel");
+				// console.log("made new channel");
 				// push channel name to history and nav bar
 				let new_path = "/channels/" + channel_name;
+				let channel_id = data['channel_id'];
+				// console.log("CHANNELID");
+				// console.log(channel_id);
 				this.newPathSetter(new_path, true);
-				this.state.currentChannel = channel_name;
+
+				this.setState({currentChannel: channel_name,
+							   currentChannelID: channel_id});
+
 				// load new chat page
 		  }
 		});
 	}
 
 	createUsername() {
-		console.log("Creating new user");
+		// console.log("Creating new user");
 		let username = document.querySelector("input#username").value;
 		let password = document.querySelector("input#password").value;
 	
@@ -191,8 +255,8 @@ class Belay extends React.Component {
 													   'password': password})});
 			request.then((response) => response.json())
 			.then(data => {
-				console.log(data);
-				console.log(data['success']);
+				// console.log(data);
+				// console.log(data['success']);
 				if (data['success']) {
 					// console.log("also setting state");
 					let auth_key = data['auth_key'];
@@ -281,7 +345,7 @@ class Channels extends React.Component {
 	// displays available channels
 	prompt_for_channel_name() {
 		let channel_name = prompt("Enter new channel name:");
-		console.log(channel_name);
+		// console.log(channel_name);
 		if (channel_name) {
 			this.props.createChannel(channel_name);
 		}
@@ -289,7 +353,8 @@ class Channels extends React.Component {
 	
 	componentDidMount() {
 		// this.props.getChannels();
-		this.interval = setInterval(this.props.getChannels, 1000);
+		this.channelInterval = setInterval(this.props.getChannels, 1000);
+		this.messageInterval = setInterval(this.props.getMessages, 1000);
 	}
 
 	componentWillUnmount() {
@@ -320,7 +385,7 @@ class Channels extends React.Component {
 		}
 		else {
 			let chat_name = this.props.view.split("/")[2]; // check state instead?
-			console.log(chat_name);
+			// console.log(chat_name);
 			return (
 				<div>
 					<h1>Belay</h1>

@@ -40,7 +40,7 @@ def create_user():
     # print("users before:", users)
 
     if username in users:
-        print("USERNAME IN DB")
+        # print("USERNAME IN DB")
         return jsonify({'success': False})
 
     # add user to db
@@ -99,8 +99,13 @@ def create_channel():
             cur.execute('''INSERT INTO channels
                             (channel_name)
                             VALUES (?)''', (channel_name,))
+
+            channel_id = cur.execute('''SELECT id FROM channels
+                                        WHERE channel_name = (?)''',
+                                        (channel_name,)).fetchone()[0]
+            print(channel_id)
             cur.close()
-            return jsonify({'success': True})
+            return jsonify({'success': True, 'channel_id': channel_id})
     cur.close()
     return jsonify({'success': False})
 
@@ -124,11 +129,11 @@ def post_message():
     data = json.loads(request.data)
     
     auth_key = header['Auth-Key']
-    print(auth_key)
+    # print(auth_key)
     channel = data['channel']
-    print(channel)
+    # print(channel)
     text = data['text']
-    print(text)
+    # print(text)
 
     # first, authenticate user
     cur = con.cursor()
@@ -137,16 +142,16 @@ def post_message():
                         WHERE auth_key = (?)
                         ''',
                         (auth_key,)).fetchone()
-    print(user)
+    # print(user)
     if user[1] == auth_key:
-        print('user is authenticated')
+        # print('user is authenticated')
         # get channel id
         channel_id = cur.execute('''
                         SELECT * FROM channels
                         WHERE channel_name = (?)
                         ''',
                         (channel,)).fetchone()[0]
-        print(channel_id)
+        # print(channel_id)
         # post message
         cur.execute('''INSERT INTO messages
                         (channel_id, body, author_name, author_auth_key)
@@ -155,6 +160,22 @@ def post_message():
         return jsonify({'success': True})
     cur.close()
     return jsonify({'success': False})
+
+
+@app.route('/get_messages', methods=['POST'])
+def get_messages():
+    data = json.loads(request.data)
+    channel_id = data['channel_id']
+    
+    cur = con.cursor()
+    messages = cur.execute('''
+                           SELECT * FROM messages
+                           WHERE channel_id = (?)
+                           ''',
+                           (channel_id,)).fetchall()
+
+    # messages = chats[chat_id]['messages'][-30:]    
+    return {"messages": messages}
 
 
 # @app.route('/update_user', methods=['POST'])
@@ -181,14 +202,6 @@ def post_message():
 #         users[auth_key]["chats"].append(chat_id)
 #         return jsonify({'success': True})
 #     return jsonify({'success': False})
-
-
-# @app.route('/get_messages', methods=['POST'])
-# def get_messages():
-#     data = json.loads(request.data)
-#     chat_id = data['chat_id']
-#     messages = chats[chat_id]['messages'][-30:]    
-#     return {"messages": messages}
 
 # if __name__ == '__main__':
 #   app.run(debug = True, host = '0.0.0.0')
