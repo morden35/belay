@@ -74,6 +74,38 @@ class Belay extends React.Component {
 		// }
 	}
 
+	postReply() {
+		// let queryString = window.location.search;
+		// let urlParams = new URLSearchParams(queryString);
+		// let chat_id = urlParams.get('chat_id');
+		// let channel = this.state.currentChannel;
+		// get auth_key from storage
+
+		// NEED MESSAGE_ID
+		let auth_key = localStorage.getItem('auth_key_morden');
+	
+		let text = document.querySelector("textarea").value;
+
+		// console.log(channel);
+		// console.log(auth_key);
+		// console.log(text);
+	  
+		let request = fetch("http://127.0.0.1:5000/post_reply",
+							{method: 'POST',
+							headers: {'Auth-Key': auth_key},
+							body: JSON.stringify({ //'channel': channel,
+												  'text': text})});
+		request.then((response) => response.json())
+		.then(data => {
+			if (data['success']) {
+				console.log("Your reply has been posted.");
+			  }
+			  else {
+				console.log("You do not have access to post replies in this channel.");
+			  }
+		});
+	}
+
 	postMessage() {
 		// let queryString = window.location.search;
 		// let urlParams = new URLSearchParams(queryString);
@@ -99,7 +131,7 @@ class Belay extends React.Component {
 				console.log("Your message has been posted.");
 			  }
 			  else {
-				console.log("You do not have access to post messages in this chat.");
+				console.log("You do not have access to post messages in this channel.");
 			  }
 		});
 	}
@@ -115,8 +147,8 @@ class Belay extends React.Component {
 	// TO DO
 	startMessagePolling() {
 		// let path = window.location.pathname;
-		console.log("polling?");
-		console.log(this.state.currentChannelID);
+		// console.log("polling?");
+		// console.log(this.state.currentChannelID);
 		
 		if (this.state.currentChannelID) {
 			this.getMessages().then((response) => response.json())
@@ -132,8 +164,13 @@ class Belay extends React.Component {
 				for (let message of messages) {
 					// console.log(channel);
 					// console.log(channel[1]);
-					let message_el = document.createElement("p");
+					let message_el = document.createElement("message");
+					let author_el = document.createElement("author");
+					let content = document.createElement("content");
+
 					// let message_button = document.createElement("button");
+					
+					let author = document.createTextNode(message[3]);
 					let message_body = document.createTextNode(message[2]);
 
 					// let clickHandler = () => {
@@ -145,8 +182,12 @@ class Belay extends React.Component {
 	
 					// channel_button.addEventListener("click", clickHandler);
 					// channel_button.append(channel_name);
-					message_el.appendChild(message_body);
-				
+					author_el.appendChild(author);
+					content.appendChild(message_body);
+
+					message_el.appendChild(author_el);
+					message_el.appendChild(content);
+
 					message_div.appendChild(message_el);
 				}
 			});
@@ -237,8 +278,6 @@ class Belay extends React.Component {
 
 				this.setState({currentChannel: channel_name,
 							   currentChannelID: channel_id});
-
-				// load new chat page
 		  }
 		});
 	}
@@ -353,8 +392,8 @@ class Channels extends React.Component {
 	
 	componentDidMount() {
 		// this.props.getChannels();
-		this.channelInterval = setInterval(this.props.getChannels, 1000);
-		this.messageInterval = setInterval(this.props.getMessages, 1000);
+		this.channelInterval = setInterval(this.props.getChannels, 500);
+		this.messageInterval = setInterval(this.props.getMessages, 500);
 	}
 
 	componentWillUnmount() {
@@ -377,15 +416,14 @@ class Channels extends React.Component {
 							<ul id="channel_list">
 							</ul>
 						</div>
-						<div id="chat">
+						<div id="channel">
 						</div>
 					</div>
 				</div>
 			);
 		}
 		else {
-			let chat_name = this.props.view.split("/")[2]; // check state instead?
-			// console.log(chat_name);
+			let channel_name = this.props.view.split("/")[2]; // check state instead?
 			return (
 				<div>
 					<h1>Belay</h1>
@@ -399,9 +437,9 @@ class Channels extends React.Component {
 							<ul id="channel_list">
 							</ul>
 						</div>
-						<div id="chat">
-							<div className="chat_interface">
-								<h2>{chat_name}</h2>
+						<div id="channel">
+							<div className="channel_interface">
+								<h2>{channel_name}</h2>
 								<div className="comment_box">
 									<form>
 										<label htmlFor="comment">What do you have to say?</label>

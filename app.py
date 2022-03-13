@@ -178,6 +178,38 @@ def get_messages():
     return {"messages": messages}
 
 
+@app.route('/post_reply', methods=['POST'])
+def post_reply():
+    header = request.headers
+    data = json.loads(request.data)
+    
+    auth_key = header['Auth-Key']
+    # print(auth_key)
+    message_id = data['message_id']
+    # print(channel)
+    text = data['text']
+    # print(text)
+
+    # first, authenticate user
+    cur = con.cursor()
+    user = cur.execute('''
+                        SELECT username, auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()
+    # print(user)
+    if user[1] == auth_key:
+        # print('user is authenticated')
+        # post reply
+        cur.execute('''INSERT INTO replies
+                        (body, author_name, author_auth_key, message_id)
+                        VALUES (?, ?, ?, ?)''', (text, user[0], auth_key, message_id,))
+        cur.close()
+        return jsonify({'success': True})
+    cur.close()
+    return jsonify({'success': False})
+
+
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
 #     data = json.loads(request.data)
