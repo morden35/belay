@@ -168,8 +168,14 @@ class Belay extends React.Component {
 					let author_el = document.createElement("author");
 					let content = document.createElement("content");
 
-					// let message_button = document.createElement("button");
-					
+					let num_replies_el = document.createElement("count");
+					num_replies_el.setAttribute("id", "reply_count");
+
+					let reply_button = document.createElement("button");
+					reply_button.setAttribute("id", "reply");
+					let reply = document.createTextNode("Reply");
+					reply_button.appendChild(reply);
+
 					let author = document.createTextNode(message[3]);
 					let message_body = document.createTextNode(message[2]);
 
@@ -187,6 +193,8 @@ class Belay extends React.Component {
 
 					message_el.appendChild(author_el);
 					message_el.appendChild(content);
+					message_el.appendChild(reply_button);
+					message_el.appendChild(num_replies_el);
 
 					message_div.appendChild(message_el);
 				}
