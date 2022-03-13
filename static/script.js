@@ -9,7 +9,8 @@ class Belay extends React.Component {
 			isAuth: false,
 			path: window.location.pathname,
 			currentChannel: null,
-			currentChannelID: null
+			currentChannelID: null,
+			currentMessageID: null
 		}
 		// console.log(this.state.path);
 
@@ -49,7 +50,7 @@ class Belay extends React.Component {
 				loginUser={() => this.login()}/>
 			);
 		}
-		else if (this.state.isAuth) {
+		else if (this.state.isAuth && this.state.path.startsWith("/channels")) {
 			return (
 				<Channels
 				createChannel={(channel_name) => this.createChannel(channel_name)}
@@ -57,6 +58,16 @@ class Belay extends React.Component {
 				view={this.state.path}
 				postMessage={() => this.postMessage()}
 				getMessages={() => this.startMessagePolling()}/>
+			);
+		}
+		else if (this.state.isAuth && this.state.path.startsWith("/replies")) {
+			return (
+				<Replies
+				getChannels={() => this.startChannelPolling()}
+				postReply={() => this.postReply()}
+				currentChannel={this.state.currentChannel}
+				currentChannelID={this.state.currentChannelID}
+				getSingleMessage={() => this.getSingleMessage()}/>
 			);
 		}
 		else {
@@ -74,10 +85,57 @@ class Belay extends React.Component {
 		// }
 	}
 
+	getSingleMessage() {
+		console.log("getting single message");
+		console.log(this.state.currentMessageID)
+		let request = fetch("http://127.0.0.1:5000/get_message",
+							{method: 'POST',
+							body: JSON.stringify({'message_id': this.state.currentMessageID})});
+		request.then((response) => response.json())
+		.then(data => {
+			// console.log(data['message']);
+			let message = data['message'];
+			let message_el = document.getElementById("message");
+			// let message_el = document.createElement("message");
+			let author_el = document.createElement("author");
+			let content = document.createElement("content");
+
+			// let num_replies_el = document.createElement("count");
+			// num_replies_el.setAttribute("id", "reply_count");
+
+			// let reply_button = document.createElement("button");
+			// reply_button.setAttribute("id", "reply");
+			// let reply = document.createTextNode("Reply");
+			// reply_button.appendChild(reply);
+
+			let author = document.createTextNode(message[3]);
+			let message_body = document.createTextNode(message[2]);
+
+			// let clickHandler = () => {
+			// 	console.log("SETTING NEW PATH TO REPLY");
+			// 	let newPath = "/replies/" + message[0];
+			// 	console.log(newPath);
+			// 	this.newPathSetter(newPath, true);
+			// };
+
+			// reply_button.addEventListener("click", clickHandler);
+
+			author_el.appendChild(author);
+			content.appendChild(message_body);
+
+			message_el.appendChild(author_el);
+			message_el.appendChild(content);
+			// message_el.appendChild(reply_button);
+			// message_el.appendChild(num_replies_el);
+
+			// message_div.appendChild(message_el);
+		});
+	}
+
 	postReply() {
 		// let queryString = window.location.search;
 		// let urlParams = new URLSearchParams(queryString);
-		// let chat_id = urlParams.get('chat_id');
+		let message_id = this.state.currentMessageID;
 		// let channel = this.state.currentChannel;
 		// get auth_key from storage
 
@@ -93,7 +151,7 @@ class Belay extends React.Component {
 		let request = fetch("http://127.0.0.1:5000/post_reply",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({ //'channel': channel,
+							body: JSON.stringify({'message_id': message_id,
 												  'text': text})});
 		request.then((response) => response.json())
 		.then(data => {
@@ -179,15 +237,18 @@ class Belay extends React.Component {
 					let author = document.createTextNode(message[3]);
 					let message_body = document.createTextNode(message[2]);
 
-					// let clickHandler = () => {
-					// 	let newPath = "/channels/" + channel[1];
-					// 	this.newPathSetter(newPath, true);
-					// 	this.setState({currentChannel: channel[1],
-					// 				   currentChannelID: channel[0]});
-					// };
+					let clickHandler = () => {
+						this.setState({currentMessageID: message[0]});
+
+						console.log("SETTING NEW PATH TO REPLY");
+						let newPath = "/replies/" + message[0];
+						console.log(newPath);
+						this.newPathSetter(newPath, true);
+
+					};
 	
-					// channel_button.addEventListener("click", clickHandler);
-					// channel_button.append(channel_name);
+					reply_button.addEventListener("click", clickHandler);
+
 					author_el.appendChild(author);
 					content.appendChild(message_body);
 
@@ -387,7 +448,8 @@ class Login extends React.Component {
 class Channels extends React.Component {
 	constructor(props) {
 		super(props)
-		this.interval = null
+		this.channelInterval = null
+		this.messageInterval = null
 	  }
 	// displays available channels
 	prompt_for_channel_name() {
@@ -405,7 +467,8 @@ class Channels extends React.Component {
 	}
 
 	componentWillUnmount() {
-		clearInterval(this.interval);
+		clearInterval(this.channelInterval);
+		clearInterval(this.messageInterval);
 	}
 
 	render() {
@@ -465,6 +528,67 @@ class Channels extends React.Component {
 				</div>
 			);
 		}
+	}
+}
+
+class Replies extends React.Component {
+	// displays replies page
+	constructor(props) {
+		super(props)
+		this.channelInterval = null
+		// this.messageInterval = null
+	  }
+
+	prompt_for_channel_name() {
+		let channel_name = prompt("Enter new channel name:");
+		// console.log(channel_name);
+		if (channel_name) {
+			this.props.createChannel(channel_name);
+		}
+	}
+	componentDidMount() {
+		this.props.getSingleMessage();
+		this.channelInterval = setInterval(this.props.getChannels, 500);
+		// this.messageInterval = setInterval(this.props.getMessages, 500);
+	}
+
+	componentWillUnmount() {
+		clearInterval(this.channelInterval);
+		// clearInterval(this.messageInterval);
+	}
+
+	render() {
+		return (
+			<div>
+				<h1>Belay</h1>
+				<div id="new_channel">
+					{/* () => this.props.createChannel() */}
+					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
+				</div>
+				<div id="channels">
+					<div id="join">
+						<h2>Join a Channel</h2>
+						<ul id="channel_list">
+						</ul>
+					</div>
+					<div id="channel">
+						{/* <div className="channel_interface"> */}
+							<h2>{this.props.currentChannel}</h2>
+							<message id="message">
+							</message>
+							<div className="comment_box">
+								<form>
+									<label htmlFor="comment">What do you have to say?</label>
+									<textarea name="comment"></textarea>
+									{/* TO DO post message to channel */}
+									<button type="button" value="Post" onClick={() => this.props.postReply()}>Post</button>
+								</form>
+							</div>
+						{/* </div> */}
+					</div>
+				</div>
+			</div>
+		);
 	}
 }
 

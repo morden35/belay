@@ -210,6 +210,22 @@ def post_reply():
     return jsonify({'success': False})
 
 
+@app.route('/get_message', methods=['POST'])
+def get_message():
+    data = json.loads(request.data)
+    message_id = data['message_id']
+    print(message_id)
+    
+    cur = con.cursor()
+    message = cur.execute('''
+                           SELECT * FROM messages
+                           WHERE message_id = (?)
+                           ''',
+                           (message_id,)).fetchone()
+    print(message)
+    # messages = chats[chat_id]['messages'][-30:]    
+    return {"message": message}
+
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
 #     data = json.loads(request.data)
