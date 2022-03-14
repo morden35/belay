@@ -46,11 +46,13 @@ def create_user():
     # add user to db
     cur.execute("INSERT INTO users (username, password_, auth_key) VALUES (?, ?, ?)",
                 (username, hashed, auth_key))
-    # users = cur.execute("SELECT * from users").fetchall()
+    user_id = cur.execute('''SELECT id from users
+                             WHERE username = (?)''',
+                             (username,)).fetchone()[0]
     # print("users after:", users)
     cur.close()
 
-    return jsonify({'success': True, 'auth_key': auth_key})
+    return jsonify({'success': True, 'auth_key': auth_key, 'user_id': user_id})
 
 
 @app.route('/api/auth_user', methods=['POST'])
@@ -66,9 +68,10 @@ def auth_user():
                         ''',
                         (username, )).fetchone()
     hashed = user[2]
+    user_id = user[0]
 
     if bcrypt.checkpw(password, hashed):
-        return jsonify({'success': True, 'auth_key': user[3]})
+        return jsonify({'success': True, 'auth_key': user[3], 'user_id': user_id})
     return jsonify({'success': False})
 
 
@@ -110,7 +113,7 @@ def create_channel():
     return jsonify({'success': False})
 
 
-@app.route('/get_channels', methods=['GET'])
+@app.route('/api/get_channels', methods=['GET'])
 def get_channels():
     # data = json.loads(request.data)
     # chat_id = data['chat_id']
@@ -123,7 +126,7 @@ def get_channels():
     return {"channels": channels}
 
 
-@app.route('/post_message', methods=['POST'])
+@app.route('/api/post_message', methods=['POST'])
 def post_message():
     header = request.headers
     data = json.loads(request.data)
@@ -162,7 +165,7 @@ def post_message():
     return jsonify({'success': False})
 
 
-@app.route('/get_messages', methods=['POST'])
+@app.route('/api/get_messages', methods=['POST'])
 def get_messages():
     data = json.loads(request.data)
     channel_id = data['channel_id']
@@ -174,11 +177,17 @@ def get_messages():
                            ''',
                            (channel_id,)).fetchall()
 
-    # messages = chats[chat_id]['messages'][-30:]    
-    return {"messages": messages}
+    # messages = chats[chat_id]['messages'][-30:]
+    max_id = None
+    if len(messages) > 0:
+        m_ids = [message[0] for message in messages]
+        print(m_ids)
+        max_id = max(m_ids)
+
+    return {"messages": messages, "max_id": max_id}
 
 
-@app.route('/post_reply', methods=['POST'])
+@app.route('/api/post_reply', methods=['POST'])
 def post_reply():
     header = request.headers
     data = json.loads(request.data)
@@ -210,7 +219,7 @@ def post_reply():
     return jsonify({'success': False})
 
 
-@app.route('/get_message', methods=['POST'])
+@app.route('/api/get_message', methods=['POST'])
 def get_message():
     data = json.loads(request.data)
     message_id = data['message_id']
@@ -227,7 +236,7 @@ def get_message():
     return {"message": message}
 
 
-@app.route('/get_replies', methods=['POST'])
+@app.route('/api/get_replies', methods=['POST'])
 def get_replies():
     data = json.loads(request.data)
     message_id = data['message_id']
@@ -241,6 +250,37 @@ def get_replies():
     cur.close()
 
     return {"replies": replies}
+
+
+@app.route('/api/update_last_read_message', methods=['POST'])
+def update_last_read():
+    data = json.loads(request.data)
+    
+    user_id = data['user_id']
+    channel_id = data['channel_id']
+    message_id = data['message_id']
+
+    cur = con.cursor()
+    # instead of insert, coalese here?
+    in_table = cur.execute('''SELECT user_id
+                            FROM last_read
+                            WHERE user_id = (?)''',
+                            (user_id, )).fetchone()
+    if in_table:
+        cur.execute('''UPDATE last_read
+                    SET message_id = (?)
+                    WHERE user_id = (?)
+                    AND channel_id = (?)''',
+                    (message_id, user_id, message_id,))
+    else:
+        cur.execute('''INSERT INTO last_read
+                    (user_id, channel_id, message_id)
+                    VALUES (?, ?, ?)''',
+                    (user_id, channel_id, message_id))
+    cur.close()
+
+    return {'success': True}
+
 
 # @app.route('/update_user', methods=['POST'])
 # def update_user():

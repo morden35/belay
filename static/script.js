@@ -5,12 +5,14 @@ class Belay extends React.Component {
 		this.state = {
 			username: null,
 			password: null,
+			userID: null,
 			auth_key: null,
 			isAuth: false,
 			path: window.location.pathname,
 			currentChannel: null,
 			currentChannelID: null,
-			currentMessageID: null
+			currentMessageID: null,
+			maxMessageID: null
 		}
 		// console.log(this.state.path);
 
@@ -49,10 +51,20 @@ class Belay extends React.Component {
 				createUser={() => this.createUsername()}
 				loginUser={() => this.login()}/>
 			);
+		}		
+		else if (this.state.isAuth && (this.state.path == "/channels")) {
+			return (
+				<ChannelsHome
+				createChannel={(channel_name) => this.createChannel(channel_name)}
+				getChannels={() => this.startChannelPolling()}/>
+				// view={this.state.path}/>
+				// postMessage={() => this.postMessage()}
+				// getMessages={() => this.startMessagePolling()}/>
+			);
 		}
 		else if (this.state.isAuth && this.state.path.startsWith("/channels")) {
 			return (
-				<Channels
+				<ChannelsSelect
 				createChannel={(channel_name) => this.createChannel(channel_name)}
 				getChannels={() => this.startChannelPolling()}
 				view={this.state.path}
@@ -85,10 +97,18 @@ class Belay extends React.Component {
 		// 		);
 		// }
 	}
-	
+
+	updateLastRead() {
+		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
+							{method: 'POST',
+							 body: JSON.stringify({'user_id': this.state.userID,
+												   'channel_id': this.state.currentChannelID,
+												   'message_id': this.state.maxMessageID})});
+	}
+
 	getReplies() {
 		// console.log(this.currentChannelID);
-		let request = fetch("http://127.0.0.1:5000/get_replies",
+		let request = fetch("http://127.0.0.1:5000/api/get_replies",
 							{method: 'POST',
 							body: JSON.stringify({'message_id': this.state.currentMessageID})});
 		return request
@@ -140,7 +160,7 @@ class Belay extends React.Component {
 	getSingleMessage() {
 		console.log("getting single message");
 		console.log(this.state.currentMessageID)
-		let request = fetch("http://127.0.0.1:5000/get_message",
+		let request = fetch("http://127.0.0.1:5000/api/get_message",
 							{method: 'POST',
 							body: JSON.stringify({'message_id': this.state.currentMessageID})});
 		request.then((response) => response.json())
@@ -200,7 +220,7 @@ class Belay extends React.Component {
 		// console.log(auth_key);
 		// console.log(text);
 	  
-		let request = fetch("http://127.0.0.1:5000/post_reply",
+		let request = fetch("http://127.0.0.1:5000/api/post_reply",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
 							body: JSON.stringify({'message_id': message_id,
@@ -230,7 +250,7 @@ class Belay extends React.Component {
 		// console.log(auth_key);
 		// console.log(text);
 	  
-		let request = fetch("http://127.0.0.1:5000/post_message",
+		let request = fetch("http://127.0.0.1:5000/api/post_message",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
 							body: JSON.stringify({'channel': channel,
@@ -248,7 +268,7 @@ class Belay extends React.Component {
 
 	getMessages() {
 		// console.log(this.currentChannelID);
-		let request = fetch("http://127.0.0.1:5000/get_messages",
+		let request = fetch("http://127.0.0.1:5000/api/get_messages",
 							{method: 'POST',
 							body: JSON.stringify({'channel_id': this.state.currentChannelID})});
 		return request
@@ -263,7 +283,14 @@ class Belay extends React.Component {
 			this.getMessages().then((response) => response.json())
 			.then(data => {
 				let messages = data["messages"];
-			
+				let max_id = data["max_id"];
+				console.log("MAX ID");
+				console.log(max_id);
+				if (max_id) {
+					this.setState({maxMessageID: max_id});
+					this.updateLastRead();
+				}
+
 				// first, remove all messages from html
 				let message_div = document.getElementsByClassName("messages")[0];
 				while (message_div.firstChild) {
@@ -319,7 +346,7 @@ class Belay extends React.Component {
 	}
 
 	getChannels() {
-		let request = fetch("http://127.0.0.1:5000/get_channels",
+		let request = fetch("http://127.0.0.1:5000/api/get_channels",
 							{method: 'GET'});
 							// body: JSON.stringify({'chat_id': chat_id})});
 		return request
@@ -419,6 +446,7 @@ class Belay extends React.Component {
 				if (data['success']) {
 					// console.log("also setting state");
 					let auth_key = data['auth_key'];
+					let user_id = data['user_id'];
 					let localStorage = window.localStorage;
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
@@ -427,6 +455,7 @@ class Belay extends React.Component {
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
 								   password: password,
+								   userID: user_id,
 								   isAuth: true,
 								   auth_key: auth_key});
 								//    path: "/channels"});
@@ -451,6 +480,7 @@ class Belay extends React.Component {
 			.then(data => {
 				if (data['success']) {
 					let auth_key = data['auth_key'];
+					let user_id = data['user_id'];
 					let localStorage = window.localStorage;
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
@@ -458,10 +488,11 @@ class Belay extends React.Component {
 					this.newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
 					this.setState({username: username,
-						password: password,
-						isAuth: true,
-						auth_key: auth_key});
-						// path: "/channels"});
+								password: password,
+								userID: user_id,
+								isAuth: true,
+								auth_key: auth_key});
+								// path: "/channels"});
 				}
 				else {
 					console.log("Please enter a valid username and password.");
@@ -495,8 +526,57 @@ class Login extends React.Component {
 	}
 }
 
+class ChannelsHome extends React.Component {
+	constructor(props) {
+		super(props)
+		this.channelInterval = null
+		// this.messageInterval = null
+	  }
+	// displays available channels
+	prompt_for_channel_name() {
+		let channel_name = prompt("Enter new channel name:");
+		// console.log(channel_name);
+		if (channel_name) {
+			this.props.createChannel(channel_name);
+		}
+	}
+	
+	componentDidMount() {
+		// this.props.getChannels();
+		this.channelInterval = setInterval(this.props.getChannels, 500);
+		// this.messageInterval = setInterval(this.props.getMessages, 500);
+	}
 
-class Channels extends React.Component {
+	componentWillUnmount() {
+		clearInterval(this.channelInterval);
+		// clearInterval(this.messageInterval);
+	}
+
+	render() {
+		// let channels = this.props.getChannels();
+		// if (this.props.view == "/channels") {
+		return (
+			<div>
+				<h1>Belay</h1>
+				<div id="new_channel">
+					{/* () => this.props.createChannel() */}
+					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
+				</div>
+				<div id="channels">
+					<div id="join">
+						<h2>Join a Channel</h2>
+						<ul id="channel_list">
+						</ul>
+					</div>
+					<div id="channel">
+					</div>
+				</div>
+			</div>
+		);
+	}
+}
+
+class ChannelsSelect extends React.Component {
 	constructor(props) {
 		super(props)
 		this.channelInterval = null
@@ -524,61 +604,39 @@ class Channels extends React.Component {
 
 	render() {
 		// let channels = this.props.getChannels();
-		if (this.props.view == "/channels") {
-			return (
-				<div>
-					<h1>Belay</h1>
-					<div id="new_channel">
-						{/* () => this.props.createChannel() */}
-						<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
-					</div>
-					<div id="channels">
-						<div id="join">
-							<h2>Join a Channel</h2>
-							<ul id="channel_list">
-							</ul>
-						</div>
-						<div id="channel">
-						</div>
-					</div>
+		let channel_name = this.props.view.split("/")[2]; // check state instead?
+		return (
+			<div>
+				<h1>Belay</h1>
+				<div id="new_channel">
+					{/* () => this.props.createChannel() */}
+					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
 				</div>
-			);
-		}
-		else {
-			let channel_name = this.props.view.split("/")[2]; // check state instead?
-			return (
-				<div>
-					<h1>Belay</h1>
-					<div id="new_channel">
-						{/* () => this.props.createChannel() */}
-						<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
+				<div id="channels">
+					<div id="join">
+						<h2>Join a Channel</h2>
+						<ul id="channel_list">
+						</ul>
 					</div>
-					<div id="channels">
-						<div id="join">
-							<h2>Join a Channel</h2>
-							<ul id="channel_list">
-							</ul>
-						</div>
-						<div id="channel">
-							<div className="channel_interface">
-								<h2>{channel_name}</h2>
-								<div className="comment_box">
-									<form>
-										<label htmlFor="comment">What do you have to say?</label>
-										<textarea name="comment"></textarea>
-										{/* TO DO post message to channel */}
-										<button type="button" value="Post" onClick={() => this.props.postMessage()}>Post</button>
-									</form>
-								</div>
-								<div className="messages">
-									{/* TO DO load messages */}
-								</div>
+					<div id="channel">
+						<div className="channel_interface">
+							<h2>{channel_name}</h2>
+							<div className="comment_box">
+								<form>
+									<label htmlFor="comment">What do you have to say?</label>
+									<textarea name="comment"></textarea>
+									{/* TO DO post message to channel */}
+									<button type="button" value="Post" onClick={() => this.props.postMessage()}>Post</button>
+								</form>
+							</div>
+							<div className="messages">
+								{/* TO DO load messages */}
 							</div>
 						</div>
 					</div>
 				</div>
-			);
-		}
+			</div>
+		);
 	}
 }
 
