@@ -98,6 +98,13 @@ class Belay extends React.Component {
 		// }
 	}
 
+	countUnread() {
+		let request = fetch("http://127.0.0.1:5000/api/count_unread",
+							{method: 'POST',
+							 body: JSON.stringify({'user_id': this.state.userID})})
+		return request
+	}
+
 	updateLastRead() {
 		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
 							{method: 'POST',
@@ -345,21 +352,26 @@ class Belay extends React.Component {
 		}
 	}
 
-	getChannels() {
-		let request = fetch("http://127.0.0.1:5000/api/get_channels",
-							{method: 'GET'});
-							// body: JSON.stringify({'chat_id': chat_id})});
-		return request
-	}
+	// getChannels() {
+	// 	let request = fetch("http://127.0.0.1:5000/api/get_channels",
+	// 						{method: 'GET'});
+	// 						// body: JSON.stringify({'chat_id': chat_id})});
+	// 	return request
+	// }
 	
 	startChannelPolling() {
 		let path = window.location.pathname;
 		// console.log(path);
 		
 		if (path != "/") {
-			this.getChannels().then((response) => response.json())
+			// replace getChannels with count_unread?
+			// 
+			this.countUnread().then((response) => response.json())
 			.then(data => {
-				let channels = data["channels"];
+				console.log(data);
+				let channels_dict = data //["channels_dict"];
+
+				// let channels = data["channels"];
 			
 				// first, remove all messages from html
 				let channels_div = document.getElementById("channel_list"); // [0]
@@ -367,24 +379,28 @@ class Belay extends React.Component {
 					channels_div.removeChild(channels_div.firstChild);
 				}
 				// re-populate page with 'new' messages
-				for (let channel of channels) {
+				for (const [channel_key, channel_val] of Object.entries(channels_dict)) {
 					// console.log(channel);
 					// console.log(channel[1]);
 					let channel_el = document.createElement("li");
 					let channel_button = document.createElement("button");
-					let channel_name = document.createTextNode(channel[1]);
+					let channel_name = document.createTextNode(channel_key);
+					// let channel_name = document.createTextNode(channel[1]);
 
 					let clickHandler = () => {
-						let newPath = "/channels/" + channel[1];
+						let newPath = "/channels/" + channel_key;
 						this.newPathSetter(newPath, true);
-						this.setState({currentChannel: channel[1],
-									   currentChannelID: channel[0]});
+						this.setState({currentChannel: channel_key,
+									   currentChannelID: channel_val["channel_id"]});
 					};
 	
 					channel_button.addEventListener("click", clickHandler);
 					channel_button.append(channel_name);
 					channel_el.appendChild(channel_button);
-				
+					if (channel_val["unread"] > 0) {
+						let unread = document.createTextNode(channel_val["unread"] + " Unread");
+						channel_el.append(unread);
+					}
 					channels_div.appendChild(channel_el);
 				}
 			});

@@ -106,24 +106,24 @@ def create_channel():
             channel_id = cur.execute('''SELECT id FROM channels
                                         WHERE channel_name = (?)''',
                                         (channel_name,)).fetchone()[0]
-            print(channel_id)
+            # print(channel_id)
             cur.close()
             return jsonify({'success': True, 'channel_id': channel_id})
     cur.close()
     return jsonify({'success': False})
 
 
-@app.route('/api/get_channels', methods=['GET'])
-def get_channels():
-    # data = json.loads(request.data)
-    # chat_id = data['chat_id']
-    # messages = chats[chat_id]['messages'][-30:]    
-    cur = con.cursor()
-    channels = cur.execute('''SELECT * FROM channels''').fetchall()
-    # print(channels)
-    cur.close()
+# @app.route('/api/get_channels', methods=['GET'])
+# def get_channels():
+#     # data = json.loads(request.data)
+#     # chat_id = data['chat_id']
+#     # messages = chats[chat_id]['messages'][-30:]    
+#     cur = con.cursor()
+#     channels = cur.execute('''SELECT * FROM channels''').fetchall()
+#     # print(channels)
+#     cur.close()
 
-    return {"channels": channels}
+#     return {"channels": channels}
 
 
 @app.route('/api/post_message', methods=['POST'])
@@ -181,7 +181,7 @@ def get_messages():
     max_id = None
     if len(messages) > 0:
         m_ids = [message[0] for message in messages]
-        print(m_ids)
+        # print(m_ids)
         max_id = max(m_ids)
 
     return {"messages": messages, "max_id": max_id}
@@ -281,6 +281,44 @@ def update_last_read():
 
     return {'success': True}
 
+
+@app.route('/api/count_unread', methods=['POST'])
+def count_unread():
+    data = json.loads(request.data)
+    
+    user_id = data['user_id']
+    # channel_id = data['channel_id']
+    # message_id = data['message_id']
+
+    channels_dict = {}
+
+    cur = con.cursor()
+
+    all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
+    for channel in all_channels:
+        channel_id = channel[0]
+        channel_name = channel[1]
+        message_count = cur.execute('''SELECT COUNT(*)
+                                    FROM messages
+                                    WHERE channel_id = (?)''',
+                                    (channel_id,)).fetchone()[0]
+        # print(message_count)
+        last_read = cur.execute('''SELECT message_id
+                                   FROM last_read
+                                   WHERE user_id = (?)
+                                   AND channel_id = (?)''',
+                                   (user_id, channel_id, )).fetchone()
+        # print(last_read)
+        if last_read:
+            unread = message_count - last_read[0]
+        else:
+            unread = message_count
+        # if unread > 0:
+        channels_dict[channel_name] = {"channel_id": channel_id,
+                                        "unread": unread}
+
+    cur.close()
+    return channels_dict
 
 # @app.route('/update_user', methods=['POST'])
 # def update_user():
