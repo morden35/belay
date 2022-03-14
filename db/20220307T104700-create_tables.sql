@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS channels;
 DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS replies;
+DROP TABLE IF EXISTS last_read;
 
 create table users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,3 +33,10 @@ create table replies (
     message_id INTEGER,
     FOREIGN KEY(message_id) REFERENCES messages(message_id)
 );
+
+create table last_read (
+    user_id INTEGER PRIMARY KEY,
+    channel_id INTEGER,
+    message_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+)
