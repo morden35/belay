@@ -99,16 +99,20 @@ class Belay extends React.Component {
 	}
 
 	countUnread() {
+		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/count_unread",
 							{method: 'POST',
+							 headers: {'Auth-Key': auth_key},
 							 body: JSON.stringify({'user_id': this.state.userID})})
 		return request
 	}
 
 	updateLastRead() {
 		// console.log(this.state.maxMessageID);
+		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
 							{method: 'POST',
+							 headers: {'Auth-Key': auth_key},
 							 body: JSON.stringify({'user_id': this.state.userID,
 												   'channel_id': this.state.currentChannelID,
 												   'message_id': this.state.maxMessageID})});
@@ -117,8 +121,10 @@ class Belay extends React.Component {
 
 	getReplies() {
 		// console.log(this.currentChannelID);
+		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_replies",
 							{method: 'POST',
+							headers: {'Auth-Key': auth_key},
 							body: JSON.stringify({'message_id': this.state.currentMessageID})});
 		return request
 	}
@@ -169,47 +175,54 @@ class Belay extends React.Component {
 	getSingleMessage() {
 		// console.log("getting single message");
 		// console.log(this.state.currentMessageID)
+		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_message",
 							{method: 'POST',
+							headers: {'Auth-Key': auth_key},
 							body: JSON.stringify({'message_id': this.state.currentMessageID})});
 		request.then((response) => response.json())
 		.then(data => {
-			// console.log(data['message']);
-			let message = data['message'];
-			let message_el = document.getElementById("message");
-			// let message_el = document.createElement("message");
-			let author_el = document.createElement("author");
-			let content = document.createElement("content");
+			if (data["success"]) {
+				// console.log(data['message']);
+				let message = data['message'];
+				let message_el = document.getElementById("message");
+				// let message_el = document.createElement("message");
+				let author_el = document.createElement("author");
+				let content = document.createElement("content");
 
-			// let num_replies_el = document.createElement("count");
-			// num_replies_el.setAttribute("id", "reply_count");
+				// let num_replies_el = document.createElement("count");
+				// num_replies_el.setAttribute("id", "reply_count");
 
-			// let reply_button = document.createElement("button");
-			// reply_button.setAttribute("id", "reply");
-			// let reply = document.createTextNode("Reply");
-			// reply_button.appendChild(reply);
+				// let reply_button = document.createElement("button");
+				// reply_button.setAttribute("id", "reply");
+				// let reply = document.createTextNode("Reply");
+				// reply_button.appendChild(reply);
 
-			let author = document.createTextNode(message[3]);
-			let message_body = document.createTextNode(message[2]);
+				let author = document.createTextNode(message[3]);
+				let message_body = document.createTextNode(message[2]);
 
-			// let clickHandler = () => {
-			// 	console.log("SETTING NEW PATH TO REPLY");
-			// 	let newPath = "/replies/" + message[0];
-			// 	console.log(newPath);
-			// 	this.newPathSetter(newPath, true);
-			// };
+				// let clickHandler = () => {
+				// 	console.log("SETTING NEW PATH TO REPLY");
+				// 	let newPath = "/replies/" + message[0];
+				// 	console.log(newPath);
+				// 	this.newPathSetter(newPath, true);
+				// };
 
-			// reply_button.addEventListener("click", clickHandler);
+				// reply_button.addEventListener("click", clickHandler);
 
-			author_el.appendChild(author);
-			content.appendChild(message_body);
+				author_el.appendChild(author);
+				content.appendChild(message_body);
 
-			message_el.appendChild(author_el);
-			message_el.appendChild(content);
-			// message_el.appendChild(reply_button);
-			// message_el.appendChild(num_replies_el);
+				message_el.appendChild(author_el);
+				message_el.appendChild(content);
+				// message_el.appendChild(reply_button);
+				// message_el.appendChild(num_replies_el);
 
-			// message_div.appendChild(message_el);
+				// message_div.appendChild(message_el);
+			}
+			else {
+				console.log("Need valid auth-key.");
+			}
 		});
 	}
 
@@ -239,9 +252,9 @@ class Belay extends React.Component {
 			if (data['success']) {
 				console.log("Your reply has been posted.");
 			  }
-			  else {
+			else {
 				console.log("You do not have access to post replies in this channel.");
-			  }
+			}
 		});
 	}
 
@@ -277,8 +290,10 @@ class Belay extends React.Component {
 
 	getMessages() {
 		// console.log(this.currentChannelID);
+		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_messages",
 							{method: 'POST',
+							headers: {'Auth-Key': auth_key},
 							body: JSON.stringify({'channel_id': this.state.currentChannelID})});
 		return request
 	}
@@ -303,9 +318,11 @@ class Belay extends React.Component {
 
 				// first, remove all messages from html
 				let message_div = document.getElementsByClassName("messages")[0];
+				// if (message_div) {
 				while (message_div.firstChild) {
 					message_div.removeChild(message_div.firstChild);
 				}
+
 				// re-populate page with 'new' messages
 				for (let message of messages) {
 					// console.log(channel);
@@ -334,7 +351,7 @@ class Belay extends React.Component {
 						this.newPathSetter(newPath, true);
 
 					};
-	
+
 					reply_button.addEventListener("click", clickHandler);
 
 					author_el.appendChild(author);
@@ -347,11 +364,8 @@ class Belay extends React.Component {
 
 					message_div.appendChild(message_el);
 				}
+				// }
 			});
-			// .then(() => {
-				// this.startChannelPolling();
-				// let timout = setTimeout(this.startChannelPolling(), 1000);
-			// });
 		}
 	}
 
@@ -372,7 +386,7 @@ class Belay extends React.Component {
 			this.countUnread().then((response) => response.json())
 			.then(data => {
 				// console.log(data);
-				let channels_dict = data //["channels_dict"];
+				let channels_dict = data["channels_dict"];
 
 				// let channels = data["channels"];
 			
@@ -598,9 +612,9 @@ class ChannelsHome extends React.Component {
 class ChannelsSelect extends React.Component {
 	constructor(props) {
 		super(props)
-		// this.channelInterval = null
-		// this.messageInterval = null
-		this.interval = null
+		this.channelInterval = null
+		this.messageInterval = null
+		// this.interval = null
 	  }
 	// displays available channels
 	prompt_for_channel_name() {
@@ -624,9 +638,9 @@ class ChannelsSelect extends React.Component {
 	}
 
 	componentWillUnmount() {
-		// clearInterval(this.channelInterval);
-		// clearInterval(this.messageInterval);
-		clearInterval(this.interval);
+		clearInterval(this.channelInterval);
+		clearInterval(this.messageInterval);
+		// clearInterval(this.interval);
 	}
 
 	render() {

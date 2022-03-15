@@ -67,11 +67,12 @@ def auth_user():
                         WHERE username = (?)
                         ''',
                         (username, )).fetchone()
-    hashed = user[2]
-    user_id = user[0]
+    if user:
+        hashed = user[2]
+        user_id = user[0]
 
-    if bcrypt.checkpw(password, hashed):
-        return jsonify({'success': True, 'auth_key': user[3], 'user_id': user_id})
+        if bcrypt.checkpw(password, hashed):
+            return jsonify({'success': True, 'auth_key': user[3], 'user_id': user_id})
     return jsonify({'success': False})
 
 
@@ -167,24 +168,35 @@ def post_message():
 
 @app.route('/api/get_messages', methods=['POST'])
 def get_messages():
-    data = json.loads(request.data)
-    channel_id = data['channel_id']
-    
+    header = request.headers
+    auth_key = header['Auth-Key']
+    # first, authenticate user
     cur = con.cursor()
-    messages = cur.execute('''
-                           SELECT * FROM messages
-                           WHERE channel_id = (?)
-                           ''',
-                           (channel_id,)).fetchall()
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        channel_id = data['channel_id']
+        
+        cur = con.cursor()
+        messages = cur.execute('''
+                            SELECT * FROM messages
+                            WHERE channel_id = (?)
+                            ''',
+                            (channel_id,)).fetchall()
 
-    # messages = chats[chat_id]['messages'][-30:]
-    max_id = None
-    if len(messages) > 0:
-        m_ids = [message[0] for message in messages]
-        # print(m_ids)
-        max_id = max(m_ids)
+        # messages = chats[chat_id]['messages'][-30:]
+        max_id = None
+        if len(messages) > 0:
+            m_ids = [message[0] for message in messages]
+            # print(m_ids)
+            max_id = max(m_ids)
 
-    return {"messages": messages, "max_id": max_id}
+        return {"success": True, "messages": messages, "max_id": max_id}
+    return {"success": False}
 
 
 @app.route('/api/post_reply', methods=['POST'])
@@ -221,112 +233,156 @@ def post_reply():
 
 @app.route('/api/get_message', methods=['POST'])
 def get_message():
-    data = json.loads(request.data)
-    message_id = data['message_id']
-    # print(message_id)
-    
+    header = request.headers
+    auth_key = header['Auth-Key']
+    # first, authenticate user
     cur = con.cursor()
-    message = cur.execute('''
-                           SELECT * FROM messages
-                           WHERE message_id = (?)
-                           ''',
-                           (message_id,)).fetchone()
-    # print(message)
-    # messages = chats[chat_id]['messages'][-30:]    
-    return {"message": message}
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        message_id = data['message_id']
+        # print(message_id)
+        
+        cur = con.cursor()
+        message = cur.execute('''
+                            SELECT * FROM messages
+                            WHERE message_id = (?)
+                            ''',
+                            (message_id,)).fetchone()
+        # print(message)
+        # messages = chats[chat_id]['messages'][-30:]    
+        return {"success": True, "message": message}
+    return {"success": False}
 
 
 @app.route('/api/get_replies', methods=['POST'])
 def get_replies():
-    data = json.loads(request.data)
-    message_id = data['message_id']
-
+    header = request.headers
+    auth_key = header['Auth-Key']
+    # first, authenticate user
     cur = con.cursor()
-    replies = cur.execute('''SELECT * FROM replies
-                          WHERE message_id = (?)
-                          ''',
-                          (message_id,)).fetchall()
-    # print(channels)
-    cur.close()
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        message_id = data['message_id']
 
-    return {"replies": replies}
+        cur = con.cursor()
+        replies = cur.execute('''SELECT * FROM replies
+                            WHERE message_id = (?)
+                            ''',
+                            (message_id,)).fetchall()
+        # print(channels)
+        cur.close()
+
+        return {"success": True, "replies": replies}
+    return {"success": False}
 
 
 @app.route('/api/update_last_read_message', methods=['POST'])
 def update_last_read():
-    data = json.loads(request.data)
-    
-    user_id = data['user_id']
-    channel_id = data['channel_id']
-    message_id = data['message_id']
-    # print(channel_id)
-    # print(message_id)
-
+    header = request.headers
+    auth_key = header['Auth-Key']
+    # first, authenticate user
     cur = con.cursor()
-    # instead of insert, coalese here?
-    in_table = cur.execute('''SELECT user_id
-                            FROM last_read
-                            WHERE user_id = (?)
-                            AND channel_id = (?)''',
-                            (user_id, channel_id,)).fetchone()
-    # print("in_table", in_table)
-    if in_table:
-        cur.execute('''UPDATE last_read
-                    SET message_id = (?)
-                    WHERE user_id = (?)
-                    AND channel_id = (?)''',
-                    (message_id, user_id, channel_id,))
-    else:
-        cur.execute('''INSERT INTO last_read
-                    (user_id, channel_id, message_id)
-                    VALUES (?, ?, ?)''',
-                    (user_id, channel_id, message_id))
-    cur.close()
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        
+        user_id = data['user_id']
+        channel_id = data['channel_id']
+        message_id = data['message_id']
+        # print(channel_id)
+        # print(message_id)
 
-    return {'success': True}
+        cur = con.cursor()
+        # instead of insert, coalese here?
+        in_table = cur.execute('''SELECT user_id
+                                FROM last_read
+                                WHERE user_id = (?)
+                                AND channel_id = (?)''',
+                                (user_id, channel_id,)).fetchone()
+        # print("in_table", in_table)
+        if in_table:
+            cur.execute('''UPDATE last_read
+                        SET message_id = (?)
+                        WHERE user_id = (?)
+                        AND channel_id = (?)''',
+                        (message_id, user_id, channel_id,))
+        else:
+            cur.execute('''INSERT INTO last_read
+                        (user_id, channel_id, message_id)
+                        VALUES (?, ?, ?)''',
+                        (user_id, channel_id, message_id))
+        cur.close()
+
+        return {'success': True}
+    return {"success": False}
 
 
 @app.route('/api/count_unread', methods=['POST'])
 def count_unread():
-    data = json.loads(request.data)
-    
-    user_id = data['user_id']
-    # channel_id = data['channel_id']
-    # message_id = data['message_id']
-
-    channels_dict = {}
-
+    header = request.headers
+    auth_key = header['Auth-Key']
+    # first, authenticate user
     cur = con.cursor()
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        
+        user_id = data['user_id']
+        # channel_id = data['channel_id']
+        # message_id = data['message_id']
 
-    all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
-    for channel in all_channels:
-        channel_id = channel[0]
-        # print(channel_id)
-        channel_name = channel[1]
-        message_count = cur.execute('''SELECT COUNT(*)
-                                    FROM messages
-                                    WHERE channel_id = (?)''',
-                                    (channel_id,)).fetchone()[0]
-        # print(message_count)
-        last_read = cur.execute('''SELECT message_id
-                                   FROM last_read
-                                   WHERE user_id = (?)
-                                   AND channel_id = (?)''',
-                                   (user_id, channel_id, )).fetchone()
-        # print(last_read)
-        # print("message_count", message_count)
-        # print("last_read", last_read)
-        if last_read:
-            unread = message_count - last_read[0]
-        else:
-            unread = message_count
-        # print("unread", unread)
-        # if unread > 0:
-        channels_dict[channel_name] = {"channel_id": channel_id,
-                                        "unread": unread}
+        channels_dict = {}
 
-    cur.close()
-    return channels_dict
+        cur = con.cursor()
+
+        all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
+        for channel in all_channels:
+            channel_id = channel[0]
+            # print(channel_id)
+            channel_name = channel[1]
+            message_count = cur.execute('''SELECT COUNT(*)
+                                        FROM messages
+                                        WHERE channel_id = (?)''',
+                                        (channel_id,)).fetchone()[0]
+            # print(message_count)
+            last_read = cur.execute('''SELECT message_id
+                                    FROM last_read
+                                    WHERE user_id = (?)
+                                    AND channel_id = (?)''',
+                                    (user_id, channel_id, )).fetchone()
+            # print(last_read)
+            # print("message_count", message_count)
+            # print("last_read", last_read)
+            if last_read:
+                unread = message_count - last_read[0]
+            else:
+                unread = message_count
+            # print("unread", unread)
+            # if unread > 0:
+            channels_dict[channel_name] = {"channel_id": channel_id,
+                                            "unread": unread}
+
+        cur.close()
+        return {"success": True, "channels_dict": channels_dict}
+    return {"success": False}
 
 
 # if __name__ == '__main__':
