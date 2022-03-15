@@ -15,9 +15,9 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 # TODO: Include any other routes your app might send users to
 @app.route('/')
 @app.route('/channels')
-# @app.route('/login') # these are for page refreshes (not history)
-# @app.route('/channels/<string:channel_name>')
-def index(channel_name=None):
+@app.route('/channels/<string:channel_name>')
+@app.route('/replies/<int:message_id>')
+def index(channel_name=None, message_id=None):
     return app.send_static_file('index.html')
 
 

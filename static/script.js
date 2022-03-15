@@ -2,18 +2,38 @@ class Belay extends React.Component {
 	// contains the entire app
 	constructor(props) {
 		super(props);
-		this.state = {
-			username: null,
-			password: null,
-			userID: null,
-			auth_key: null,
-			isAuth: false,
-			path: window.location.pathname,
-			currentChannel: null,
-			currentChannelID: null,
-			currentMessageID: null,
-			maxMessageID: null
+
+		let auth_key = localStorage.getItem('auth_key_morden');
+		if (auth_key){
+			this.state = {
+				username: null,
+				password: null,
+				userID: null,
+				auth_key: auth_key,
+				isAuth: true,
+				path: window.location.pathname,
+				currentChannel: null,
+				currentChannelID: null,
+				currentMessageID: null,
+				maxMessageID: null
+			}
 		}
+		else {
+			this.state = {
+				username: null,
+				password: null,
+				userID: null,
+				auth_key: null,
+				isAuth: false,
+				path: window.location.pathname,
+				currentChannel: null,
+				currentChannelID: null,
+				currentMessageID: null,
+				maxMessageID: null
+			}
+		}
+
+
 		// console.log(this.state.path);
 
 		window.addEventListener("popstate", (event)=>{
