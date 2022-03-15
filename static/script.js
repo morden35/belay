@@ -106,11 +106,13 @@ class Belay extends React.Component {
 	}
 
 	updateLastRead() {
+		// console.log(this.state.maxMessageID);
 		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
 							{method: 'POST',
 							 body: JSON.stringify({'user_id': this.state.userID,
 												   'channel_id': this.state.currentChannelID,
 												   'message_id': this.state.maxMessageID})});
+		// return request?
 	}
 
 	getReplies() {
@@ -165,8 +167,8 @@ class Belay extends React.Component {
 	}
 
 	getSingleMessage() {
-		console.log("getting single message");
-		console.log(this.state.currentMessageID)
+		// console.log("getting single message");
+		// console.log(this.state.currentMessageID)
 		let request = fetch("http://127.0.0.1:5000/api/get_message",
 							{method: 'POST',
 							body: JSON.stringify({'message_id': this.state.currentMessageID})});
@@ -325,9 +327,9 @@ class Belay extends React.Component {
 					let clickHandler = () => {
 						this.setState({currentMessageID: message[0]});
 
-						console.log("SETTING NEW PATH TO REPLY");
+						// console.log("SETTING NEW PATH TO REPLY");
 						let newPath = "/replies/" + message[0];
-						console.log(newPath);
+						// console.log(newPath);
 						this.newPathSetter(newPath, true);
 
 					};
@@ -368,7 +370,7 @@ class Belay extends React.Component {
 			// 
 			this.countUnread().then((response) => response.json())
 			.then(data => {
-				console.log(data);
+				// console.log(data);
 				let channels_dict = data //["channels_dict"];
 
 				// let channels = data["channels"];
@@ -426,7 +428,7 @@ class Belay extends React.Component {
 							 body: JSON.stringify({'channel_name': channel_name})});
 		request.then((response) => response.json())
 		.then(data => {
-			console.log(data);
+			// console.log(data);
 			if (!data['success']) {
 				console.log("You need a valid authorization key and unique channel name to create a new channel.");
 			}
@@ -609,8 +611,8 @@ class ChannelsSelect extends React.Component {
 	
 	componentDidMount() {
 		// this.props.getChannels();
-		this.channelInterval = setInterval(this.props.getChannels, 500);
 		this.messageInterval = setInterval(this.props.getMessages, 500);
+		this.channelInterval = setInterval(this.props.getChannels, 500);
 	}
 
 	componentWillUnmount() {

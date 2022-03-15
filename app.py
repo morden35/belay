@@ -7,7 +7,7 @@ import json
 import sqlite3
 import bcrypt
 
-con = sqlite3.connect('db/belay.db', check_same_thread=False)
+con = sqlite3.connect('db/belay.db', check_same_thread=False, isolation_level=None)
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -223,7 +223,7 @@ def post_reply():
 def get_message():
     data = json.loads(request.data)
     message_id = data['message_id']
-    print(message_id)
+    # print(message_id)
     
     cur = con.cursor()
     message = cur.execute('''
@@ -231,7 +231,7 @@ def get_message():
                            WHERE message_id = (?)
                            ''',
                            (message_id,)).fetchone()
-    print(message)
+    # print(message)
     # messages = chats[chat_id]['messages'][-30:]    
     return {"message": message}
 
@@ -259,19 +259,23 @@ def update_last_read():
     user_id = data['user_id']
     channel_id = data['channel_id']
     message_id = data['message_id']
+    # print(channel_id)
+    # print(message_id)
 
     cur = con.cursor()
     # instead of insert, coalese here?
     in_table = cur.execute('''SELECT user_id
                             FROM last_read
-                            WHERE user_id = (?)''',
-                            (user_id, )).fetchone()
+                            WHERE user_id = (?)
+                            AND channel_id = (?)''',
+                            (user_id, channel_id,)).fetchone()
+    # print("in_table", in_table)
     if in_table:
         cur.execute('''UPDATE last_read
                     SET message_id = (?)
                     WHERE user_id = (?)
                     AND channel_id = (?)''',
-                    (message_id, user_id, message_id,))
+                    (message_id, user_id, channel_id,))
     else:
         cur.execute('''INSERT INTO last_read
                     (user_id, channel_id, message_id)
@@ -297,6 +301,7 @@ def count_unread():
     all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
     for channel in all_channels:
         channel_id = channel[0]
+        # print(channel_id)
         channel_name = channel[1]
         message_count = cur.execute('''SELECT COUNT(*)
                                     FROM messages
@@ -309,10 +314,13 @@ def count_unread():
                                    AND channel_id = (?)''',
                                    (user_id, channel_id, )).fetchone()
         # print(last_read)
+        # print("message_count", message_count)
+        # print("last_read", last_read)
         if last_read:
             unread = message_count - last_read[0]
         else:
             unread = message_count
+        # print("unread", unread)
         # if unread > 0:
         channels_dict[channel_name] = {"channel_id": channel_id,
                                         "unread": unread}
@@ -320,30 +328,6 @@ def count_unread():
     cur.close()
     return channels_dict
 
-# @app.route('/update_user', methods=['POST'])
-# def update_user():
-#     data = json.loads(request.data)
-#     auth_key = data['auth_key']
-#     chat_id = data['chat_id']
-#     chats[chat_id]["authorized_users"].add(auth_key)
-#     users[auth_key]['chats'].append(chat_id)
-#     return jsonify({'success': True})
-
-
-# @app.route('/join', methods=['POST'])
-# def join():
-#     data = json.loads(request.data)
-#     auth_key = data['auth_key']
-#     chat_id = data['chat_id']
-#     magic_key = data['magic_key']
-
-#     if (auth_key in users.keys() and
-#         chat_id in chats.keys() and
-#         chats[chat_id]['magic_passphrase'] == magic_key):
-#         chats[chat_id]["authorized_users"].add(auth_key)
-#         users[auth_key]["chats"].append(chat_id)
-#         return jsonify({'success': True})
-#     return jsonify({'success': False})
 
 # if __name__ == '__main__':
 #   app.run(debug = True, host = '0.0.0.0')

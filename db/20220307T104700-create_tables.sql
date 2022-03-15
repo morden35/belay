@@ -35,8 +35,9 @@ create table replies (
 );
 
 create table last_read (
-    user_id INTEGER PRIMARY KEY,
+    user_id INTEGER,
     channel_id INTEGER,
     message_id INTEGER,
+    PRIMARY KEY(user_id, channel_id)
     FOREIGN KEY(user_id) REFERENCES users(id)
 )
