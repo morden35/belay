@@ -4,24 +4,30 @@ class Belay extends React.Component {
 		super(props);
 
 		let auth_key = localStorage.getItem('auth_key_morden');
+		let userID = localStorage.getItem('userID');
+		let currentChannel = localStorage.getItem('currentChannel');
+		let currentChannelID = localStorage.getItem('currentChannelID');
+		let currentMessageID = localStorage.getItem('currentMessageID');
+		let maxMessageID = localStorage.getItem('maxMessageID');
+
 		if (auth_key){
 			this.state = {
-				username: null,
-				password: null,
-				userID: null,
+				// username: null,
+				// password: null,
+				userID: userID,
 				auth_key: auth_key,
 				isAuth: true,
 				path: window.location.pathname,
-				currentChannel: null,
-				currentChannelID: null,
-				currentMessageID: null,
-				maxMessageID: null
+				currentChannel: currentChannel,
+				currentChannelID: currentChannelID,
+				currentMessageID: currentMessageID,
+				maxMessageID: maxMessageID
 			}
 		}
 		else {
 			this.state = {
-				username: null,
-				password: null,
+				// username: null,
+				// password: null,
 				userID: null,
 				auth_key: null,
 				isAuth: false,
@@ -331,7 +337,9 @@ class Belay extends React.Component {
 				let max_id = data["max_id"];
 				console.log("MAX ID");
 				console.log(max_id);
+				let localStorage = window.localStorage;
 				if (max_id) {
+					localStorage.setItem("maxMessageID", max_id);
 					this.setState({maxMessageID: max_id});
 					this.updateLastRead();
 				}
@@ -363,6 +371,9 @@ class Belay extends React.Component {
 					let message_body = document.createTextNode(message[2]);
 
 					let clickHandler = () => {
+						// let localStorage = window.localStorage;
+						localStorage.setItem("currentMessageID", message[0]);
+
 						this.setState({currentMessageID: message[0]});
 
 						// console.log("SETTING NEW PATH TO REPLY");
@@ -426,6 +437,11 @@ class Belay extends React.Component {
 
 					let clickHandler = () => {
 						let newPath = "/channels/" + channel_key;
+						let localStorage = window.localStorage;
+
+						localStorage.setItem("currentChannel", channel_key);
+						localStorage.setItem("currentChannelID", channel_val["channel_id"]);
+
 						this.newPathSetter(newPath, true);
 						this.setState({currentChannel: channel_key,
 									   currentChannelID: channel_val["channel_id"]});
@@ -474,6 +490,11 @@ class Belay extends React.Component {
 				let channel_id = data['channel_id'];
 				// console.log("CHANNELID");
 				// console.log(channel_id);
+				let localStorage = window.localStorage;
+
+				localStorage.setItem("currentChannel", channel_name);
+				localStorage.setItem("currentChannelID", channel_id);
+
 				this.newPathSetter(new_path, true);
 
 				this.setState({currentChannel: channel_name,
@@ -503,11 +524,12 @@ class Belay extends React.Component {
 					let localStorage = window.localStorage;
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
+					localStorage.setItem("userID", user_id);
 
 					this.newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
-					this.setState({username: username,
-								   password: password,
+					this.setState({// username: username,
+								   // password: password,
 								   userID: user_id,
 								   isAuth: true,
 								   auth_key: auth_key});
@@ -537,11 +559,12 @@ class Belay extends React.Component {
 					let localStorage = window.localStorage;
 					localStorage.setItem("auth_key_morden", auth_key);
 					localStorage.setItem("username_morden", username);
+					localStorage.setItem("userID", user_id);
 
 					this.newPathSetter("/channels", true)
 					// window.history.pushState({},"", "http://127.0.0.1:5000/channels");
-					this.setState({username: username,
-								password: password,
+					this.setState({// username: username,
+								// password: password,
 								userID: user_id,
 								isAuth: true,
 								auth_key: auth_key});
