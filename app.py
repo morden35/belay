@@ -358,9 +358,14 @@ def count_unread():
             channel_id = channel[0]
             # print(channel_id)
             channel_name = channel[1]
+
+            # week 9 example of get_last_unread
+            # instead of for loop
+            # subquery CTE using with
+
             message_count = cur.execute('''SELECT COUNT(*)
                                         FROM messages
-                                        WHERE channel_id = (?)''',
+                                        WHERE channel_id = (?)''', # where id > last_read
                                         (channel_id,)).fetchone()[0]
             # print(message_count)
             last_read = cur.execute('''SELECT message_id
@@ -369,12 +374,18 @@ def count_unread():
                                     AND channel_id = (?)''',
                                     (user_id, channel_id, )).fetchone()
             # print(last_read)
+
+            # count 
+
             # print("message_count", message_count)
             # print("last_read", last_read)
             if last_read:
                 unread = message_count - last_read[0]
+                # id is across all messages
             else:
                 unread = message_count
+                # change this instead set last_read to 0
+            
             # print("unread", unread)
             # if unread > 0:
             channels_dict[channel_name] = {"channel_id": channel_id,

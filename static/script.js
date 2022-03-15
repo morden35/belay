@@ -693,7 +693,6 @@ class ChannelsSelect extends React.Component {
 			<div>
 				<h1>Belay</h1>
 				<div id="new_channel">
-					{/* () => this.props.createChannel() */}
 					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
 				</div>
 				<div id="channels">
@@ -709,12 +708,10 @@ class ChannelsSelect extends React.Component {
 								<form>
 									<label htmlFor="comment">What do you have to say?</label>
 									<textarea name="comment"></textarea>
-									{/* TO DO post message to channel */}
 									<button type="button" value="Post" onClick={() => this.props.postMessage()}>Post</button>
 								</form>
 							</div>
 							<div className="messages">
-								{/* TO DO load messages */}
 							</div>
 						</div>
 					</div>
@@ -754,11 +751,11 @@ class Replies extends React.Component {
 	}
 
 	render() {
+		let channel_name = this.props.view.split("/")[2]; // check state instead?
 		return (
 			<div>
 				<h1>Belay</h1>
 				<div id="new_channel">
-					{/* () => this.props.createChannel() */}
 					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
 				</div>
 				<div id="channels">
@@ -769,19 +766,17 @@ class Replies extends React.Component {
 					</div>
 					<div id="channel">
 						<div className="reply_interface">
-							<h2>{this.props.currentChannel}</h2>
+							<h2>{channel_name}</h2>
 							<message id="message">
 							</message>
 							<div className="comment_box">
 								<form>
 									<label htmlFor="comment">What do you have to say?</label>
 									<textarea name="comment"></textarea>
-									{/* TO DO post message to channel */}
 									<button type="button" value="Post" onClick={() => this.props.postReply()}>Post</button>
 								</form>
 							</div>
 							<div className="messages">
-									{/* TO DO load messages */}
 							</div>
 						</div>
 					</div>
