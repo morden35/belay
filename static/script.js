@@ -284,6 +284,7 @@ class Belay extends React.Component {
 	}
 
 	startMessagePolling() {
+		// console.log("HERE");
 		// let path = window.location.pathname;
 		// console.log("polling?");
 		// console.log(this.state.currentChannelID);
@@ -597,8 +598,9 @@ class ChannelsHome extends React.Component {
 class ChannelsSelect extends React.Component {
 	constructor(props) {
 		super(props)
-		this.channelInterval = null
-		this.messageInterval = null
+		// this.channelInterval = null
+		// this.messageInterval = null
+		this.interval = null
 	  }
 	// displays available channels
 	prompt_for_channel_name() {
@@ -611,13 +613,20 @@ class ChannelsSelect extends React.Component {
 	
 	componentDidMount() {
 		// this.props.getChannels();
-		this.messageInterval = setInterval(this.props.getMessages, 500);
-		this.channelInterval = setInterval(this.props.getChannels, 500);
+		// function toPoll(props) {
+		// 	console.log("here")
+		// 	props.getMessages();
+		// 	props.getChannels();
+		// }
+		this.messageInterval = setInterval(this.props.getMessages, 400);
+		this.channelInterval = setInterval(this.props.getChannels, 600);
+		// this.interval = setInterval(() => {console.log("here"); this.props.getMessages; this.props.getChannels}, 500);
 	}
 
 	componentWillUnmount() {
-		clearInterval(this.channelInterval);
-		clearInterval(this.messageInterval);
+		// clearInterval(this.channelInterval);
+		// clearInterval(this.messageInterval);
+		clearInterval(this.interval);
 	}
 
 	render() {

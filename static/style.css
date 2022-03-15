@@ -57,15 +57,31 @@ body {
 }
 
 ul#channel_list {
+	/* display: grid; */
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
+	/* grid-template-columns: 1fr 1fr; */
+	/* justify-content: left; */
 }
+
+/* ul#channel_list li {
+	grid-column-start: 1;
+	grid-column-end: -1;
+} */
 
 ul#channel_list button{
 	width: 30%;
 	min-width: 30px;
+	/* grid-column-start: 1;
+	grid-column-end: 2; */
 }
+
+/* ul#channel_list text{
+	grid-column-start: 2;
+	grid-column-end: -1;
+} */
+
 
 .channel_interface {
 	display: grid;
