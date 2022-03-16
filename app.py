@@ -142,7 +142,7 @@ def post_message():
     # first, authenticate user
     cur = con.cursor()
     user = cur.execute('''
-                        SELECT username, auth_key FROM users
+                        SELECT username, auth_key, id FROM users
                         WHERE auth_key = (?)
                         ''',
                         (auth_key,)).fetchone()
@@ -160,6 +160,36 @@ def post_message():
         cur.execute('''INSERT INTO messages
                         (channel_id, body, author_name, author_auth_key)
                         VALUES (?, ?, ?, ?)''', (channel_id, text, user[0], auth_key,))
+
+        # also update last read message
+        # data = json.loads(request.data)
+        
+        user_id = user[2]
+        # channel_id = data['channel_id']
+        message_id = cur.execute('''SELECT MAX(message_id)
+                                    FROM messages''').fetchone()[0]
+        # print(channel_id)
+        # print(message_id)
+
+        # cur = con.cursor()
+        # instead of insert, coalese here?
+        in_table = cur.execute('''SELECT user_id
+                                FROM last_read
+                                WHERE user_id = (?)
+                                AND channel_id = (?)''',
+                                (user_id, channel_id,)).fetchone()
+        # print("in_table", in_table)
+        if in_table:
+            cur.execute('''UPDATE last_read
+                        SET message_id = (?)
+                        WHERE user_id = (?)
+                        AND channel_id = (?)''',
+                        (message_id, user_id, channel_id,))
+        else:
+            cur.execute('''INSERT INTO last_read
+                        (user_id, channel_id, message_id)
+                        VALUES (?, ?, ?)''',
+                        (user_id, channel_id, message_id))
         cur.close()
         return jsonify({'success': True})
     cur.close()

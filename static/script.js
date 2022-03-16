@@ -306,6 +306,7 @@ class Belay extends React.Component {
 		request.then((response) => response.json())
 		.then(data => {
 			if (data['success']) {
+				// update_last_read?
 				console.log("Your message has been posted.");
 			  }
 			  else {
