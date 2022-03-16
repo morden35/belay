@@ -175,6 +175,7 @@ def get_messages():
     if stored_auth_key == auth_key:
         data = json.loads(request.data)
         channel_id = data['channel_id']
+        currentChannel = data['currentChannel']
         
         cur = con.cursor()
         messages = cur.execute('''
@@ -188,7 +189,11 @@ def get_messages():
             m_ids = [message[0] for message in messages]
             max_id = max(m_ids)
 
-        return {"success": True, "messages": messages, "max_id": max_id}
+        return {"success": True,
+                "messages": messages,
+                "max_id": max_id,
+                "currentChannel": currentChannel,
+                "currentChannelID": channel_id}
     return {"success": False}
 
 

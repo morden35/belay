@@ -7,8 +7,8 @@ class Belay extends React.Component {
 		let userID = localStorage.getItem('userID');
 		// these are more complex
 		// either coming from previous state, /channels url, /replies url
-		let currentChannel = localStorage.getItem('currentChannel');
-		let currentChannelID = localStorage.getItem('currentChannelID');
+		// let currentChannel = localStorage.getItem('currentChannel');
+		// let currentChannelID = localStorage.getItem('currentChannelID');
 		
 		// what about these?
 		let currentMessageID = localStorage.getItem('currentMessageID');
@@ -20,8 +20,8 @@ class Belay extends React.Component {
 				auth_key: auth_key,
 				isAuth: true,
 				path: window.location.pathname,
-				currentChannel: currentChannel,
-				currentChannelID: currentChannelID,
+				// currentChannel: currentChannel,
+				// currentChannelID: currentChannelID,
 				currentMessageID: currentMessageID,
 				maxMessageID: maxMessageID
 			}
@@ -32,8 +32,8 @@ class Belay extends React.Component {
 				auth_key: null,
 				isAuth: false,
 				path: window.location.pathname,
-				currentChannel: null,
-				currentChannelID: null,
+				// currentChannel: null,
+				// currentChannelID: null,
 				currentMessageID: null,
 				maxMessageID: null
 			}
@@ -57,10 +57,10 @@ class Belay extends React.Component {
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
-		this.setState({path: newPath});
 		if(pushToHistory) {
 			window.history.pushState({path: newPath},"", newPath);
 		}
+		this.setState({path: newPath});
 	}
 
 	render() {
@@ -86,7 +86,7 @@ class Belay extends React.Component {
 				<ChannelsSelect
 				createChannel={(channel_name) => this.createChannel(channel_name)}
 				getChannels={() => this.startChannelPolling()}
-				currentChannel={this.state.currentChannel}
+				// currentChannel={this.state.currentChannel}
 				postMessage={() => this.postMessage()}
 				getMessages={() => this.startMessagePolling()}
 				view={this.state.path}/>
@@ -97,8 +97,8 @@ class Belay extends React.Component {
 				<Replies
 				getChannels={() => this.startChannelPolling()}
 				postReply={() => this.postReply()}
-				currentChannel={this.state.currentChannel}
-				currentChannelID={this.state.currentChannelID}
+				// currentChannel={this.state.currentChannel}
+				// currentChannelID={this.state.currentChannelID}
 				getSingleMessage={() => this.getSingleMessage()}
 				startReplyPolling = {() => this.startReplyPolling()}
 				view={this.state.path}/>
@@ -123,13 +123,17 @@ class Belay extends React.Component {
 	}
 
 	updateLastRead() {
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let currentChannelID = urlParams.get('currentChannelID');
+
 		// console.log(this.state.maxMessageID);
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
 							{method: 'POST',
 							 headers: {'Auth-Key': auth_key},
 							 body: JSON.stringify({'user_id': this.state.userID,
-												   'channel_id': this.state.currentChannelID,
+												   'channel_id': currentChannelID, //this.state.
 												   'message_id': this.state.maxMessageID})});
 		// return request?
 	}
@@ -270,10 +274,10 @@ class Belay extends React.Component {
 	}
 
 	postMessage() {
-		// let queryString = window.location.search;
-		// let urlParams = new URLSearchParams(queryString);
-		// let chat_id = urlParams.get('chat_id');
-		let channel = this.state.currentChannel;
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let channel = urlParams.get('currentChannel');
+		// let channel = this.state.currentChannel;
 		// get auth_key from storage
 		let auth_key = localStorage.getItem('auth_key_morden');
 	
@@ -302,11 +306,17 @@ class Belay extends React.Component {
 
 	getMessages() {
 		// console.log(this.currentChannelID);
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let currentChannelID = urlParams.get('currentChannelID');
+		let currentChannel = urlParams.get('currentChannel');
+
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_messages",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'channel_id': this.state.currentChannelID})});
+							body: JSON.stringify({'channel_id': currentChannelID,
+												  'currentChannel': currentChannel})}); //this.state.
 		return request
 	}
 
@@ -316,74 +326,77 @@ class Belay extends React.Component {
 		// console.log("polling?");
 		// console.log(this.state.currentChannelID);
 		
-		if (this.state.currentChannelID) {
-			this.getMessages().then((response) => response.json())
-			.then(data => {
-				let messages = data["messages"];
-				let max_id = data["max_id"];
-				console.log("MAX ID");
-				console.log(max_id);
-				let localStorage = window.localStorage;
-				if (max_id) {
-					localStorage.setItem("maxMessageID", max_id);
-					this.setState({maxMessageID: max_id});
-					this.updateLastRead();
-				}
+		// if (this.state.currentChannelID) {
+		this.getMessages().then((response) => response.json())
+		.then(data => {
+			let messages = data["messages"];
+			let max_id = data["max_id"];
+			let currentChannel = data["currentChannel"];
+			let currentChannelID = data["currentChannelID"];
 
-				// first, remove all messages from html
-				let message_div = document.getElementsByClassName("messages")[0];
-				// if (message_div) {
-				while (message_div.firstChild) {
-					message_div.removeChild(message_div.firstChild);
-				}
+			console.log("MAX ID");
+			console.log(max_id);
+			let localStorage = window.localStorage;
+			if (max_id) {
+				localStorage.setItem("maxMessageID", max_id);
+				this.setState({maxMessageID: max_id});
+				this.updateLastRead();
+			}
 
-				// re-populate page with 'new' messages
-				for (let message of messages) {
-					// console.log(channel);
-					// console.log(channel[1]);
-					let message_el = document.createElement("message");
-					let author_el = document.createElement("author");
-					let content = document.createElement("content");
+			// first, remove all messages from html
+			let message_div = document.getElementsByClassName("messages")[0];
+			// if (message_div) {
+			while (message_div.firstChild) {
+				message_div.removeChild(message_div.firstChild);
+			}
 
-					let num_replies_el = document.createElement("count");
-					num_replies_el.setAttribute("id", "reply_count");
+			// re-populate page with 'new' messages
+			for (let message of messages) {
+				// console.log(channel);
+				// console.log(channel[1]);
+				let message_el = document.createElement("message");
+				let author_el = document.createElement("author");
+				let content = document.createElement("content");
 
-					let reply_button = document.createElement("button");
-					reply_button.setAttribute("id", "reply");
-					let reply = document.createTextNode("Reply");
-					reply_button.appendChild(reply);
+				let num_replies_el = document.createElement("count");
+				num_replies_el.setAttribute("id", "reply_count");
 
-					let author = document.createTextNode(message[3]);
-					let message_body = document.createTextNode(message[2]);
+				let reply_button = document.createElement("button");
+				reply_button.setAttribute("id", "reply");
+				let reply = document.createTextNode("Reply");
+				reply_button.appendChild(reply);
 
-					let clickHandler = () => {
-						// let localStorage = window.localStorage;
-						localStorage.setItem("currentMessageID", message[0]);
+				let author = document.createTextNode(message[3]);
+				let message_body = document.createTextNode(message[2]);
 
-						this.setState({currentMessageID: message[0]});
+				let clickHandler = () => {
+					// let localStorage = window.localStorage;
+					localStorage.setItem("currentMessageID", message[0]);
 
-						// console.log("SETTING NEW PATH TO REPLY");
-						let newPath = "/replies/" + message[0];
-						// console.log(newPath);
-						this.newPathSetter(newPath, true);
+					this.setState({currentMessageID: message[0]});
 
-					};
+					// console.log("SETTING NEW PATH TO REPLY");
+					let newPath = "/replies/" + message[0] + "?currentChannelID=" + currentChannelID + "&currentChannel=" + currentChannel;
+					// console.log(newPath);
+					this.newPathSetter(newPath, true);
 
-					reply_button.addEventListener("click", clickHandler);
+				};
 
-					author_el.appendChild(author);
-					content.appendChild(message_body);
+				reply_button.addEventListener("click", clickHandler);
 
-					message_el.appendChild(author_el);
-					message_el.appendChild(content);
-					message_el.appendChild(reply_button);
-					message_el.appendChild(num_replies_el);
+				author_el.appendChild(author);
+				content.appendChild(message_body);
 
-					message_div.appendChild(message_el);
-				}
-				// }
-			});
-		}
+				message_el.appendChild(author_el);
+				message_el.appendChild(content);
+				message_el.appendChild(reply_button);
+				message_el.appendChild(num_replies_el);
+
+				message_div.appendChild(message_el);
+			}
+			// }
+		});
+		// }
 	}
 
 	// getChannels() {
@@ -422,15 +435,15 @@ class Belay extends React.Component {
 					// let channel_name = document.createTextNode(channel[1]);
 
 					let clickHandler = () => {
-						let newPath = "/channels/" + channel_key;
-						let localStorage = window.localStorage;
+						let newPath = "/channels/" + channel_key + "?currentChannelID=" + channel_val["channel_id"] + "&currentChannel=" + channel_key;
+						// let localStorage = window.localStorage;
 
-						localStorage.setItem("currentChannel", channel_key);
-						localStorage.setItem("currentChannelID", channel_val["channel_id"]);
+						// localStorage.setItem("currentChannel", channel_key);
+						// localStorage.setItem("currentChannelID", channel_val["channel_id"]);
 
 						this.newPathSetter(newPath, true);
-						this.setState({currentChannel: channel_key,
-									   currentChannelID: channel_val["channel_id"]});
+						// this.setState({currentChannel: channel_key,
+						// 			   currentChannelID: channel_val["channel_id"]});
 					};
 	
 					channel_button.addEventListener("click", clickHandler);
@@ -472,19 +485,19 @@ class Belay extends React.Component {
 			else {
 				// console.log("made new channel");
 				// push channel name to history and nav bar
-				let new_path = "/channels/" + channel_name;
-				let channel_id = data['channel_id'];
+				let new_path = "/channels/" + channel_name + "?currentChannelID=" + data['channel_id'] + "&currentChannel=" + channel_name;
+				// let channel_id = data['channel_id'];
 				// console.log("CHANNELID");
 				// console.log(channel_id);
-				let localStorage = window.localStorage;
+				// let localStorage = window.localStorage;
 
-				localStorage.setItem("currentChannel", channel_name);
-				localStorage.setItem("currentChannelID", channel_id);
+				// localStorage.setItem("currentChannel", channel_name);
+				// localStorage.setItem("currentChannelID", channel_id);
 
 				this.newPathSetter(new_path, true);
 
-				this.setState({currentChannel: channel_name,
-							   currentChannelID: channel_id});
+				// this.setState({currentChannel: channel_name,
+				// 			   currentChannelID: channel_id});
 		  }
 		});
 	}
@@ -673,8 +686,9 @@ class ChannelsSelect extends React.Component {
 	}
 
 	render() {
-		// let channels = this.props.getChannels();
-		let channel_name = this.props.view.split("/")[2]; // check state instead?
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let channel_name = urlParams.get('currentChannel');
 		return (
 			<div>
 				<h1>Belay</h1>
@@ -738,7 +752,9 @@ class Replies extends React.Component {
 
 	render() {
 		// let channel_name = this.props.view.split("/")[2]; // check state instead?
-		let channel_name = this.props.currentChannel;
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let channel_name = urlParams.get('currentChannel');
 		return (
 			<div>
 				<h1>Belay</h1>
