@@ -362,35 +362,39 @@ def count_unread():
             # week 9 example of get_last_unread
             # instead of for loop
             # subquery CTE using with
-
-            message_count = cur.execute('''SELECT COUNT(*)
-                                        FROM messages
-                                        WHERE channel_id = (?)''', # where id > last_read
-                                        (channel_id,)).fetchone()[0]
-            # print(message_count)
             last_read = cur.execute('''SELECT message_id
                                     FROM last_read
                                     WHERE user_id = (?)
                                     AND channel_id = (?)''',
                                     (user_id, channel_id, )).fetchone()
-            # print(last_read)
-
-            # count 
-
-            # print("message_count", message_count)
             # print("last_read", last_read)
             if last_read:
-                unread = message_count - last_read[0]
-                # id is across all messages
+                last_read = last_read[0]
             else:
-                unread = message_count
+                last_read = 0
+            unread = cur.execute('''SELECT COUNT(*)
+                                    FROM messages
+                                    WHERE channel_id = (?)
+                                    AND message_id > (?)''', # where id > last_read
+                                    (channel_id, last_read,)).fetchone()
+            # print("unread", unread)
+            if unread:
+                unread = unread[0]
+            else:
+                unread = 0
+            channels_dict[channel_name] = {"channel_id": channel_id,
+                                            "unread": unread}
+            # print("message_count", message_count)
+            # print("last_read", last_read)
+            # if last_read:
+            #     unread = message_count - last_read[0]
+            #     # id is across all messages
+            # else:
+            #     unread = message_count
                 # change this instead set last_read to 0
             
             # print("unread", unread)
             # if unread > 0:
-            channels_dict[channel_name] = {"channel_id": channel_id,
-                                            "unread": unread}
-
         cur.close()
         return {"success": True, "channels_dict": channels_dict}
     return {"success": False}
