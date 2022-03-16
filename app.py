@@ -37,10 +37,8 @@ def create_user():
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
     users = [user[0] for user in users]
-    # print("users before:", users)
 
     if username in users:
-        # print("USERNAME IN DB")
         return jsonify({'success': False})
 
     # add user to db
@@ -49,7 +47,6 @@ def create_user():
     user_id = cur.execute('''SELECT id from users
                              WHERE username = (?)''',
                              (username,)).fetchone()[0]
-    # print("users after:", users)
     cur.close()
 
     return jsonify({'success': True, 'auth_key': auth_key, 'user_id': user_id})
@@ -81,7 +78,6 @@ def create_channel():
     header = request.headers
     data = json.loads(request.data)
     auth_key = header['Auth-Key']
-    # print("auth_key", auth_key)
     channel_name = data['channel_name']
 
     # first, authenticate user
@@ -91,10 +87,7 @@ def create_channel():
                         WHERE auth_key = (?)
                         ''',
                         (auth_key,)).fetchone()[0]
-    # print("user", stored_auth_key)
-    # users = [user[0] for user in users]
     if stored_auth_key == auth_key:
-        # print('user is authenticated')
         # check if channel_name already exists
         channels = cur.execute("SELECT channel_name FROM channels").fetchall()
         channel_names = [channel[0] for channel in channels]
@@ -107,24 +100,10 @@ def create_channel():
             channel_id = cur.execute('''SELECT id FROM channels
                                         WHERE channel_name = (?)''',
                                         (channel_name,)).fetchone()[0]
-            # print(channel_id)
             cur.close()
             return jsonify({'success': True, 'channel_id': channel_id})
     cur.close()
     return jsonify({'success': False})
-
-
-# @app.route('/api/get_channels', methods=['GET'])
-# def get_channels():
-#     # data = json.loads(request.data)
-#     # chat_id = data['chat_id']
-#     # messages = chats[chat_id]['messages'][-30:]    
-#     cur = con.cursor()
-#     channels = cur.execute('''SELECT * FROM channels''').fetchall()
-#     # print(channels)
-#     cur.close()
-
-#     return {"channels": channels}
 
 
 @app.route('/api/post_message', methods=['POST'])
@@ -133,11 +112,8 @@ def post_message():
     data = json.loads(request.data)
     
     auth_key = header['Auth-Key']
-    # print(auth_key)
     channel = data['channel']
-    # print(channel)
     text = data['text']
-    # print(text)
 
     # first, authenticate user
     cur = con.cursor()
@@ -146,39 +122,27 @@ def post_message():
                         WHERE auth_key = (?)
                         ''',
                         (auth_key,)).fetchone()
-    # print(user)
     if user[1] == auth_key:
-        # print('user is authenticated')
         # get channel id
         channel_id = cur.execute('''
                         SELECT * FROM channels
                         WHERE channel_name = (?)
                         ''',
                         (channel,)).fetchone()[0]
-        # print(channel_id)
         # post message
         cur.execute('''INSERT INTO messages
                         (channel_id, body, author_name, author_auth_key)
                         VALUES (?, ?, ?, ?)''', (channel_id, text, user[0], auth_key,))
 
-        # also update last read message
-        # data = json.loads(request.data)
-        
+        # also update last read message        
         user_id = user[2]
-        # channel_id = data['channel_id']
         message_id = cur.execute('''SELECT MAX(message_id)
                                     FROM messages''').fetchone()[0]
-        # print(channel_id)
-        # print(message_id)
-
-        # cur = con.cursor()
-        # instead of insert, coalese here?
         in_table = cur.execute('''SELECT user_id
                                 FROM last_read
                                 WHERE user_id = (?)
                                 AND channel_id = (?)''',
                                 (user_id, channel_id,)).fetchone()
-        # print("in_table", in_table)
         if in_table:
             cur.execute('''UPDATE last_read
                         SET message_id = (?)
@@ -200,6 +164,7 @@ def post_message():
 def get_messages():
     header = request.headers
     auth_key = header['Auth-Key']
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -218,11 +183,9 @@ def get_messages():
                             ''',
                             (channel_id,)).fetchall()
 
-        # messages = chats[chat_id]['messages'][-30:]
         max_id = None
         if len(messages) > 0:
             m_ids = [message[0] for message in messages]
-            # print(m_ids)
             max_id = max(m_ids)
 
         return {"success": True, "messages": messages, "max_id": max_id}
@@ -235,11 +198,8 @@ def post_reply():
     data = json.loads(request.data)
     
     auth_key = header['Auth-Key']
-    # print(auth_key)
     message_id = data['message_id']
-    # print(channel)
     text = data['text']
-    # print(text)
 
     # first, authenticate user
     cur = con.cursor()
@@ -248,9 +208,7 @@ def post_reply():
                         WHERE auth_key = (?)
                         ''',
                         (auth_key,)).fetchone()
-    # print(user)
     if user[1] == auth_key:
-        # print('user is authenticated')
         # post reply
         cur.execute('''INSERT INTO replies
                         (body, author_name, author_auth_key, message_id)
@@ -265,6 +223,7 @@ def post_reply():
 def get_message():
     header = request.headers
     auth_key = header['Auth-Key']
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -275,16 +234,13 @@ def get_message():
     if stored_auth_key == auth_key:
         data = json.loads(request.data)
         message_id = data['message_id']
-        # print(message_id)
         
         cur = con.cursor()
         message = cur.execute('''
                             SELECT * FROM messages
                             WHERE message_id = (?)
                             ''',
-                            (message_id,)).fetchone()
-        # print(message)
-        # messages = chats[chat_id]['messages'][-30:]    
+                            (message_id,)).fetchone()  
         return {"success": True, "message": message}
     return {"success": False}
 
@@ -293,6 +249,7 @@ def get_message():
 def get_replies():
     header = request.headers
     auth_key = header['Auth-Key']
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -309,7 +266,6 @@ def get_replies():
                             WHERE message_id = (?)
                             ''',
                             (message_id,)).fetchall()
-        # print(channels)
         cur.close()
 
         return {"success": True, "replies": replies}
@@ -320,6 +276,7 @@ def get_replies():
 def update_last_read():
     header = request.headers
     auth_key = header['Auth-Key']
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -333,8 +290,6 @@ def update_last_read():
         user_id = data['user_id']
         channel_id = data['channel_id']
         message_id = data['message_id']
-        # print(channel_id)
-        # print(message_id)
 
         cur = con.cursor()
         # instead of insert, coalese here?
@@ -343,7 +298,6 @@ def update_last_read():
                                 WHERE user_id = (?)
                                 AND channel_id = (?)''',
                                 (user_id, channel_id,)).fetchone()
-        # print("in_table", in_table)
         if in_table:
             cur.execute('''UPDATE last_read
                         SET message_id = (?)
@@ -365,6 +319,7 @@ def update_last_read():
 def count_unread():
     header = request.headers
     auth_key = header['Auth-Key']
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -376,8 +331,6 @@ def count_unread():
         data = json.loads(request.data)
         
         user_id = data['user_id']
-        # channel_id = data['channel_id']
-        # message_id = data['message_id']
 
         channels_dict = {}
 
@@ -386,7 +339,6 @@ def count_unread():
         all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
         for channel in all_channels:
             channel_id = channel[0]
-            # print(channel_id)
             channel_name = channel[1]
 
             # week 9 example of get_last_unread
@@ -397,7 +349,6 @@ def count_unread():
                                     WHERE user_id = (?)
                                     AND channel_id = (?)''',
                                     (user_id, channel_id, )).fetchone()
-            # print("last_read", last_read)
             if last_read:
                 last_read = last_read[0]
             else:
@@ -405,26 +356,14 @@ def count_unread():
             unread = cur.execute('''SELECT COUNT(*)
                                     FROM messages
                                     WHERE channel_id = (?)
-                                    AND message_id > (?)''', # where id > last_read
+                                    AND message_id > (?)''',
                                     (channel_id, last_read,)).fetchone()
-            # print("unread", unread)
             if unread:
                 unread = unread[0]
             else:
                 unread = 0
             channels_dict[channel_name] = {"channel_id": channel_id,
                                             "unread": unread}
-            # print("message_count", message_count)
-            # print("last_read", last_read)
-            # if last_read:
-            #     unread = message_count - last_read[0]
-            #     # id is across all messages
-            # else:
-            #     unread = message_count
-                # change this instead set last_read to 0
-            
-            # print("unread", unread)
-            # if unread > 0:
         cur.close()
         return {"success": True, "channels_dict": channels_dict}
     return {"success": False}

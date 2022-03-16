@@ -5,15 +5,17 @@ class Belay extends React.Component {
 
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let userID = localStorage.getItem('userID');
+		// these are more complex
+		// either coming from previous state, /channels url, /replies url
 		let currentChannel = localStorage.getItem('currentChannel');
 		let currentChannelID = localStorage.getItem('currentChannelID');
+		
+		// what about these?
 		let currentMessageID = localStorage.getItem('currentMessageID');
 		let maxMessageID = localStorage.getItem('maxMessageID');
 
 		if (auth_key){
 			this.state = {
-				// username: null,
-				// password: null,
 				userID: userID,
 				auth_key: auth_key,
 				isAuth: true,
@@ -26,8 +28,6 @@ class Belay extends React.Component {
 		}
 		else {
 			this.state = {
-				// username: null,
-				// password: null,
 				userID: null,
 				auth_key: null,
 				isAuth: false,
@@ -39,13 +39,8 @@ class Belay extends React.Component {
 			}
 		}
 
-
-		// console.log(this.state.path);
-
 		window.addEventListener("popstate", (event)=>{
 			console.log(event);
-			// console.log(event.state);
-			// console.log(window.location.pathname);
 
 			let newPath
 			if (event.state) {
@@ -62,8 +57,6 @@ class Belay extends React.Component {
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
-		// console.log("setting new path");
-		// console.log(newPath);
 		this.setState({path: newPath});
 		if(pushToHistory) {
 			window.history.pushState({path: newPath},"", newPath);
@@ -93,9 +86,10 @@ class Belay extends React.Component {
 				<ChannelsSelect
 				createChannel={(channel_name) => this.createChannel(channel_name)}
 				getChannels={() => this.startChannelPolling()}
-				view={this.state.path}
+				currentChannel={this.state.currentChannel}
 				postMessage={() => this.postMessage()}
-				getMessages={() => this.startMessagePolling()}/>
+				getMessages={() => this.startMessagePolling()}
+				view={this.state.path}/>
 			);
 		}
 		else if (this.state.isAuth && this.state.path.startsWith("/replies")) {
@@ -106,7 +100,8 @@ class Belay extends React.Component {
 				currentChannel={this.state.currentChannel}
 				currentChannelID={this.state.currentChannelID}
 				getSingleMessage={() => this.getSingleMessage()}
-				startReplyPolling = {() => this.startReplyPolling()}/>
+				startReplyPolling = {() => this.startReplyPolling()}
+				view={this.state.path}/>
 			);
 		}
 		else {
@@ -116,12 +111,6 @@ class Belay extends React.Component {
 				loginUser={() => this.login()}/>
 			);
 		}
-		//if (this.state.path == "/channels")
-		// else if () {
-		// 	return (
-
-		// 		);
-		// }
 	}
 
 	countUnread() {
@@ -191,10 +180,6 @@ class Belay extends React.Component {
 					reply_div.appendChild(message_el);
 				}
 			});
-			// .then(() => {
-				// this.startChannelPolling();
-				// let timout = setTimeout(this.startChannelPolling(), 1000);
-			// });
 		}
 	}
 
@@ -752,7 +737,8 @@ class Replies extends React.Component {
 	}
 
 	render() {
-		let channel_name = this.props.view.split("/")[2]; // check state instead?
+		// let channel_name = this.props.view.split("/")[2]; // check state instead?
+		let channel_name = this.props.currentChannel;
 		return (
 			<div>
 				<h1>Belay</h1>
