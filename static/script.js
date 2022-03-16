@@ -645,7 +645,7 @@ class ChannelsHome extends React.Component {
 		// let channels = this.props.getChannels();
 		// if (this.props.view == "/channels") {
 		return (
-			<div>
+			<div id="container">
 				<h1>Belay</h1>
 				<div id="new_channel">
 					{/* () => this.props.createChannel() */}
@@ -704,7 +704,7 @@ class ChannelsSelect extends React.Component {
 		let urlParams = new URLSearchParams(queryString);
 		let channel_name = urlParams.get('currentChannel');
 		return (
-			<div>
+			<div id="container">
 				<h1>Belay</h1>
 				<div id="new_channel">
 					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>
@@ -770,7 +770,7 @@ class Replies extends React.Component {
 		let urlParams = new URLSearchParams(queryString);
 		let channel_name = urlParams.get('currentChannel');
 		return (
-			<div>
+			<div id="container">
 				<h1>Belay</h1>
 				<div id="new_channel">
 					<button id="new_channel_button" onClick={() => this.prompt_for_channel_name()}>New Channel</button>

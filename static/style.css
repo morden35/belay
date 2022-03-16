@@ -3,6 +3,11 @@ body {
 	background-color: #E6E6FA;
 	color: #4B0082;
 	font-family: monaco, Consolas, "Lucida Console", monospace;
+	height: 100%;
+}
+
+#root {
+	height: 100%;
 }
 
 #buttons {
@@ -20,9 +25,13 @@ body {
 	margin-left: 5px;
 }
 
+#container {
+	height: 100%;
+}
+
 #channels {
 	display: flex;
-	height: 80%;
+	height: 100%;
 	/* justify-content: space-evenly; */
 }
 
@@ -126,7 +135,7 @@ width: 100%
 	grid-template-columns: 200px 1fr;
 	grid-template-rows: min-content;
 	grid-auto-rows: min-content;
-	height: auto;
+	/* height: auto; */
 	grid-column-start: 1;
 }
 /* .channel_interface */
