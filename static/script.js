@@ -11,7 +11,7 @@ class Belay extends React.Component {
 		// let currentChannelID = localStorage.getItem('currentChannelID');
 		
 		// what about these?
-		let currentMessageID = localStorage.getItem('currentMessageID');
+		// let currentMessageID = localStorage.getItem('currentMessageID');
 		let maxMessageID = localStorage.getItem('maxMessageID');
 
 		if (auth_key){
@@ -22,7 +22,7 @@ class Belay extends React.Component {
 				path: window.location.pathname,
 				// currentChannel: currentChannel,
 				// currentChannelID: currentChannelID,
-				currentMessageID: currentMessageID,
+				// currentMessageID: currentMessageID,
 				maxMessageID: maxMessageID
 			}
 		}
@@ -34,7 +34,7 @@ class Belay extends React.Component {
 				path: window.location.pathname,
 				// currentChannel: null,
 				// currentChannelID: null,
-				currentMessageID: null,
+				// currentMessageID: null,
 				maxMessageID: null
 			}
 		}
@@ -139,12 +139,15 @@ class Belay extends React.Component {
 	}
 
 	getReplies() {
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let currentMessageID = urlParams.get('currentMessageID');
 		// console.log(this.currentChannelID);
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_replies",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'message_id': this.state.currentMessageID})});
+							body: JSON.stringify({'message_id': currentMessageID})}); //this.state.
 		return request
 	}
 
@@ -153,48 +156,52 @@ class Belay extends React.Component {
 		// console.log("polling?");
 		// console.log(this.state.currentChannelID);
 		
-		if (this.state.currentMessageID) {
-			this.getReplies().then((response) => response.json())
-			.then(data => {
-				let replies = data["replies"];
-			
-				// first, remove all messages from html
-				let reply_div = document.getElementsByClassName("messages")[0];
-				// let reply_div = document.getElementById("replies"); // [0]
-				while (reply_div.firstChild) {
-					reply_div.removeChild(reply_div.firstChild);
-				}
-				// re-populate page with 'new' messages
-				for (let reply of replies) {
-					// console.log(channel);
-					// console.log(channel[1]);
-					let message_el = document.createElement("message");
-					let author_el = document.createElement("author");
-					let content = document.createElement("content");
+		// if (this.state.currentMessageID) {
+		this.getReplies().then((response) => response.json())
+		.then(data => {
+			let replies = data["replies"];
+		
+			// first, remove all messages from html
+			let reply_div = document.getElementsByClassName("messages")[0];
+			// let reply_div = document.getElementById("replies"); // [0]
+			while (reply_div.firstChild) {
+				reply_div.removeChild(reply_div.firstChild);
+			}
+			// re-populate page with 'new' messages
+			for (let reply of replies) {
+				// console.log(channel);
+				// console.log(channel[1]);
+				let message_el = document.createElement("message");
+				let author_el = document.createElement("author");
+				let content = document.createElement("content");
 
-					let author = document.createTextNode(reply[2]);
-					let message_body = document.createTextNode(reply[1]);
+				let author = document.createTextNode(reply[2]);
+				let message_body = document.createTextNode(reply[1]);
 
-					author_el.appendChild(author);
-					content.appendChild(message_body);
+				author_el.appendChild(author);
+				content.appendChild(message_body);
 
-					message_el.appendChild(author_el);
-					message_el.appendChild(content);
+				message_el.appendChild(author_el);
+				message_el.appendChild(content);
 
-					reply_div.appendChild(message_el);
-				}
-			});
-		}
+				reply_div.appendChild(message_el);
+			}
+		});
+		// }
 	}
 
 	getSingleMessage() {
 		// console.log("getting single message");
 		// console.log(this.state.currentMessageID)
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let currentMessageID = urlParams.get('currentMessageID');
+
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_message",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'message_id': this.state.currentMessageID})});
+							body: JSON.stringify({'message_id': currentMessageID})}); //this.state.
 		request.then((response) => response.json())
 		.then(data => {
 			if (data["success"]) {
@@ -244,7 +251,11 @@ class Belay extends React.Component {
 	postReply() {
 		// let queryString = window.location.search;
 		// let urlParams = new URLSearchParams(queryString);
-		let message_id = this.state.currentMessageID;
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let message_id = urlParams.get('currentMessageID');
+
+		// let message_id = this.state.currentMessageID;
 		// let channel = this.state.currentChannel;
 		// get auth_key from storage
 
@@ -371,12 +382,12 @@ class Belay extends React.Component {
 
 				let clickHandler = () => {
 					// let localStorage = window.localStorage;
-					localStorage.setItem("currentMessageID", message[0]);
-
-					this.setState({currentMessageID: message[0]});
+					// localStorage.setItem("currentMessageID", message[0]);
+					let currentMessageID = message[0];
+					// this.setState({currentMessageID: message[0]});
 
 					// console.log("SETTING NEW PATH TO REPLY");
-					let newPath = "/replies/" + message[0] + "?currentChannelID=" + currentChannelID + "&currentChannel=" + currentChannel;
+					let newPath = "/replies/" + message[0] + "?currentChannelID=" + currentChannelID + "&currentChannel=" + currentChannel + "&currentMessageID=" + currentMessageID;
 					// console.log(newPath);
 					this.newPathSetter(newPath, true);
 
