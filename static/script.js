@@ -12,7 +12,7 @@ class Belay extends React.Component {
 		
 		// what about these?
 		// let currentMessageID = localStorage.getItem('currentMessageID');
-		let maxMessageID = localStorage.getItem('maxMessageID');
+		// let maxMessageID = localStorage.getItem('maxMessageID');
 
 		if (auth_key){
 			this.state = {
@@ -23,7 +23,7 @@ class Belay extends React.Component {
 				// currentChannel: currentChannel,
 				// currentChannelID: currentChannelID,
 				// currentMessageID: currentMessageID,
-				maxMessageID: maxMessageID
+				// maxMessageID: maxMessageID
 			}
 		}
 		else {
@@ -35,7 +35,7 @@ class Belay extends React.Component {
 				// currentChannel: null,
 				// currentChannelID: null,
 				// currentMessageID: null,
-				maxMessageID: null
+				// maxMessageID: null
 			}
 		}
 
@@ -100,7 +100,7 @@ class Belay extends React.Component {
 				// currentChannel={this.state.currentChannel}
 				// currentChannelID={this.state.currentChannelID}
 				getSingleMessage={() => this.getSingleMessage()}
-				startReplyPolling = {() => this.startReplyPolling()}
+				startReplyPolling ={() => this.startReplyPolling()}
 				view={this.state.path}/>
 			);
 		}
@@ -127,6 +127,9 @@ class Belay extends React.Component {
 		let urlParams = new URLSearchParams(queryString);
 		let currentChannelID = urlParams.get('currentChannelID');
 
+		let localStorage = window.localStorage;
+		let maxMessageID = localStorage.getItem("maxMessageID");
+
 		// console.log(this.state.maxMessageID);
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
@@ -134,7 +137,7 @@ class Belay extends React.Component {
 							 headers: {'Auth-Key': auth_key},
 							 body: JSON.stringify({'user_id': this.state.userID,
 												   'channel_id': currentChannelID, //this.state.
-												   'message_id': this.state.maxMessageID})});
+												   'message_id': maxMessageID})}); //this.state.
 		// return request?
 	}
 
@@ -347,10 +350,10 @@ class Belay extends React.Component {
 
 			console.log("MAX ID");
 			console.log(max_id);
-			let localStorage = window.localStorage;
 			if (max_id) {
+				let localStorage = window.localStorage;
 				localStorage.setItem("maxMessageID", max_id);
-				this.setState({maxMessageID: max_id});
+				// this.setState({maxMessageID: max_id});
 				this.updateLastRead();
 			}
 

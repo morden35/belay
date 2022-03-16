@@ -15,10 +15,22 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 # TODO: Include any other routes your app might send users to
 @app.route('/')
 @app.route('/channels')
-@app.route('/channels/<string:channel_name>')
+@app.route('/channels/<string:channel_name>') # ?currentChannelID=<int:channel_id>&currentChannel=<string:cur_channel_name>
 @app.route('/replies/<int:message_id>')
-def index(channel_name=None, message_id=None):
-    return app.send_static_file('index.html')
+def index(channel_name=None, message_id=None): # , channel_id=None, cur_channel_name=None
+    if channel_name:
+        currentChannelID = request.args.get('currentChannelID')
+        currentChannel = request.args.get('currentChannel')
+        if currentChannelID and currentChannel:
+            return app.send_static_file('index.html')
+    elif message_id:
+        currentChannelID = request.args.get('currentChannelID')
+        currentChannel = request.args.get('currentChannel')
+        currentMessageID = request.args.get('currentMessageID')
+        if currentChannelID and currentChannel and currentMessageID:
+            return app.send_static_file('index.html')
+    else:
+        return app.send_static_file('index.html')
 
 
 # -------------------------------- API ROUTES ----------------------------------
