@@ -148,7 +148,13 @@ message {
 	grid-template-columns: 30% 60% 10%;
 	grid-template-rows: 1fr 1fr;
 	border-bottom: 1px solid lightgray;
+	max-height: 250px;
 }
+
+message img {
+	max-height: 250px;
+}
+
 /* .channel_interface */
 message author {
 	color: #c93;

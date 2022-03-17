@@ -176,13 +176,30 @@ class Belay extends React.Component {
 				// console.log(channel[1]);
 				let message_el = document.createElement("message");
 				let author_el = document.createElement("author");
-				let content = document.createElement("content");
+				let content;
+				// let content = document.createElement("content");
+				
+				let message_txt = reply[1];
+				console.log(message_txt);
+				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
+				let found = message_txt.match(re);
+				if (found && found.length > 0) {
+					// image found
+					content = document.createElement("img");
+					content.setAttribute("src", message_txt);
+					// set src
+				}
+				else {
+					let message_body = document.createTextNode(reply[1]);
+					content = document.createElement("content");
+					content.appendChild(message_body);
+				}
 
 				let author = document.createTextNode(reply[2]);
-				let message_body = document.createTextNode(reply[1]);
+				// let message_body = document.createTextNode(reply[1]);
 
 				author_el.appendChild(author);
-				content.appendChild(message_body);
+				// content.appendChild(message_body);
 
 				message_el.appendChild(author_el);
 				message_el.appendChild(content);
@@ -213,7 +230,25 @@ class Belay extends React.Component {
 				let message_el = document.getElementById("message");
 				// let message_el = document.createElement("message");
 				let author_el = document.createElement("author");
-				let content = document.createElement("content");
+				// let content = document.createElement("content");
+				let content;
+				// let content = document.createElement("content");
+				
+				let message_txt = message[2];
+				console.log(message_txt);
+				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
+				let found = message_txt.match(re);
+				if (found && found.length > 0) {
+					// image found
+					content = document.createElement("img");
+					content.setAttribute("src", message_txt);
+					// set src
+				}
+				else {
+					let message_body = document.createTextNode(message[2]);
+					content = document.createElement("content");
+					content.appendChild(message_body);
+				}
 
 				// let num_replies_el = document.createElement("count");
 				// num_replies_el.setAttribute("id", "reply_count");
@@ -224,7 +259,7 @@ class Belay extends React.Component {
 				// reply_button.appendChild(reply);
 
 				let author = document.createTextNode(message[3]);
-				let message_body = document.createTextNode(message[2]);
+				// let message_body = document.createTextNode(message[2]);
 
 				// let clickHandler = () => {
 				// 	console.log("SETTING NEW PATH TO REPLY");
@@ -236,7 +271,7 @@ class Belay extends React.Component {
 				// reply_button.addEventListener("click", clickHandler);
 
 				author_el.appendChild(author);
-				content.appendChild(message_body);
+				// content.appendChild(message_body);
 
 				message_el.appendChild(author_el);
 				message_el.appendChild(content);
@@ -294,7 +329,6 @@ class Belay extends React.Component {
 		// let channel = this.state.currentChannel;
 		// get auth_key from storage
 		let auth_key = localStorage.getItem('auth_key_morden');
-	
 		let text = document.querySelector("textarea").value;
 
 		// console.log(channel);
@@ -370,7 +404,7 @@ class Belay extends React.Component {
 				// console.log(channel[1]);
 				let message_el = document.createElement("message");
 				let author_el = document.createElement("author");
-				let content = document.createElement("content");
+				let content;
 
 				let num_replies_el = document.createElement("count");
 				num_replies_el.setAttribute("id", "reply_count");
@@ -381,7 +415,22 @@ class Belay extends React.Component {
 				reply_button.appendChild(reply);
 
 				let author = document.createTextNode(message[3]);
-				let message_body = document.createTextNode(message[2]);
+
+				let message_txt = message[2];
+				console.log(message_txt);
+				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
+				let found = message_txt.match(re);
+				if (found && found.length > 0) {
+					// image found
+					content = document.createElement("img");
+					content.setAttribute("src", message_txt);
+					// set src
+				}
+				else {
+					let message_body = document.createTextNode(message[2]);
+					content = document.createElement("content");
+					content.appendChild(message_body);
+				}
 
 				let clickHandler = () => {
 					// let localStorage = window.localStorage;
@@ -399,7 +448,6 @@ class Belay extends React.Component {
 				reply_button.addEventListener("click", clickHandler);
 
 				author_el.appendChild(author);
-				content.appendChild(message_body);
 
 				message_el.appendChild(author_el);
 				message_el.appendChild(content);
