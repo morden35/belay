@@ -145,7 +145,7 @@ message {
 	/* width: 100%; */
 	grid-column-start: 1;
 	grid-column-end: 3;
-	grid-template-columns: 30% 60% 10%;
+	grid-template-columns: 25% 55% 10% 10%;
 	grid-template-rows: 1fr 1fr;
 	border-bottom: 1px solid lightgray;
 	max-height: 250px;
@@ -174,5 +174,6 @@ button#reply {
 	width: 20%;
 	min-width: 50px;
 	justify-content: center;
+	max-height: 30px;
 	/* grid-column-start: 3; */
 }

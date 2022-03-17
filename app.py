@@ -386,6 +386,32 @@ def count_unread():
     return {"success": False}
 
 
+@app.route('/api/count_replies', methods=['POST'])
+def count_replies():
+    header = request.headers
+    auth_key = header['Auth-Key']
+
+    # first, authenticate user
+    cur = con.cursor()
+    stored_auth_key = cur.execute('''
+                        SELECT auth_key FROM users
+                        WHERE auth_key = (?)
+                        ''',
+                        (auth_key,)).fetchone()[0]
+    if stored_auth_key == auth_key:
+        data = json.loads(request.data)
+        message_id = data['message_id']
+
+        cur = con.cursor()
+        count_replies = cur.execute('''SELECT COUNT(*) FROM replies
+                            WHERE message_id = (?)
+                            ''',
+                            (message_id,)).fetchone()[0]
+        cur.close()
+        print(count_replies)
+
+        return {"success": True, "count_replies": count_replies}
+    return {"success": False}
 # if __name__ == '__main__':
 #   app.run(debug = True, host = '0.0.0.0')
 # http://127.0.0.1:5000/
