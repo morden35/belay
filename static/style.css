@@ -4,6 +4,7 @@ body {
 	color: #4B0082;
 	font-family: monaco, Consolas, "Lucida Console", monospace;
 	height: 100%;
+	width: 100%;
 }
 
 #root {
@@ -30,20 +31,21 @@ body {
 }
 
 #channels {
-	display: flex;
+	display: grid;
 	height: 100%;
-	/* justify-content: space-evenly; */
+	width: 100%;
+	grid-template-columns: 40% 60%;
 }
 
 #join {
-	width: 40%;
 	background-color: #4B0082;
 	color: white;
+	grid-column-start: 1;
 }
 
 #channel {
-	width: 60%;
 	background-color: white;
+	grid-column-start: 2;
 }
 
 #new_channel {
@@ -66,31 +68,15 @@ body {
 }
 
 ul#channel_list {
-	/* display: grid; */
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
-	/* grid-template-columns: 1fr 1fr; */
-	/* justify-content: left; */
 }
-
-/* ul#channel_list li {
-	grid-column-start: 1;
-	grid-column-end: -1;
-} */
 
 ul#channel_list button{
 	width: 30%;
 	min-width: 30px;
-	/* grid-column-start: 1;
-	grid-column-end: 2; */
 }
-
-/* ul#channel_list text{
-	grid-column-start: 2;
-	grid-column-end: -1;
-} */
-
 
 .channel_interface {
 	display: grid;
@@ -104,45 +90,39 @@ ul#channel_list button{
 	grid-template-columns: 100%;
 	height: 100%;
 }
-  /* .channel_interface */
+
 .comment_box {
 	margin: 5%;
-	/* padding-right: 20px; */
 	height: 100%;
-	/* border-right: 8px solid lightgray; */
 }
-  /* .channel_interface */
+
 .comment_box textarea {
 display: block;
 width: 100%
 }
-  /* .channel_interface */
+
 .comment_box button {
 	border-radius: 5px;
 	padding: 10px;
 	border: none;
 	margin-top: 15px;
 }
-/* .channel_interface */
+
 .comment_box label {
 	display: block;
-	/* font-family: 'Rowdies', cursive; */
 	margin-bottom: 10px;
 }
-/* .channel_interface */
+
 .messages {
 	display: grid;
 	grid-template-columns: 200px 1fr;
 	grid-template-rows: min-content;
 	grid-auto-rows: min-content;
-	/* height: auto; */
 	grid-column-start: 1;
 }
-/* .channel_interface */
+
 message {
 	display: grid;
-	/* grid-column: 1/3; */
-	/* width: 100%; */
 	grid-column-start: 1;
 	grid-column-end: 3;
 	grid-template-columns: 25% 55% 10% 10%;
@@ -150,10 +130,9 @@ message {
 	border-bottom: 1px solid lightgray;
 	max-height: 250px;
 }
+
 div#message {
 	display: grid;
-	/* grid-column: 1/3; */
-	/* width: 100%; */
 	grid-column-start: 1;
 	grid-column-end: 3;
 	grid-template-columns: 25% 55% 10% 10%;
@@ -166,19 +145,16 @@ message img {
 	max-height: 250px;
 }
 
-/* .channel_interface */
 message author {
 	color: #c93;
 	font-weight: bold;
 	display: block;
 	padding: 5px;
-	/* grid-column: 1/2; */
 }
-/* .channel_interface */
+
 message content {
 	display: block;
 	padding: 5px;
-	/* grid-column: 2/3; */
 }
 
 button#reply {
@@ -186,5 +162,26 @@ button#reply {
 	min-width: 50px;
 	justify-content: center;
 	max-height: 30px;
-	/* grid-column-start: 3; */
+}
+
+p#reply_count {
+	grid-column-start: 4;
+	grid-column-end: 5;
+}
+
+@media screen and (max-width: 960px){
+    body {
+        width: 100%;
+    }
+	#channels {
+		grid-template-columns: 100%;
+		grid-template-rows: 2fr 3fr;
+	}
+	#join {
+		grid-row-start: 1;
+	}
+	#channel {
+		grid-column-start: 1;
+		grid-row-start: 2;
+	}
 }

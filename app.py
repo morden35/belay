@@ -39,11 +39,11 @@ def create_user():
     data = json.loads(request.data)
     username = data['username']
     password = data['password'].encode('utf-8')
-    
+
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    
+
     auth_key = ''.join(random.choices(string.digits, k=10))
-    
+
     cur = con.cursor()
     users = cur.execute("SELECT username from users").fetchall()
     users = [user[0] for user in users]
@@ -67,7 +67,7 @@ def auth_user():
     header = request.headers
     username = header['username']
     password = header['password'].encode('utf-8')
-    
+
     cur = con.cursor()
     user = cur.execute('''
                         SELECT * FROM users
@@ -120,7 +120,7 @@ def create_channel():
 def post_message():
     header = request.headers
     data = json.loads(request.data)
-    
+
     auth_key = header['Auth-Key']
     channel = data['channel']
     text = data['text']
@@ -144,7 +144,7 @@ def post_message():
                         (channel_id, body, author_name, author_auth_key)
                         VALUES (?, ?, ?, ?)''', (channel_id, text, user[0], auth_key,))
 
-        # also update last read message        
+        # also update last read message
         user_id = user[2]
         message_id = cur.execute('''SELECT MAX(message_id)
                                     FROM messages''').fetchone()[0]
@@ -185,7 +185,7 @@ def get_messages():
     if stored_auth_key == auth_key:
         channel_id = header['channel_id']
         currentChannel = header['currentChannel']
-        
+
         cur = con.cursor()
         messages = cur.execute('''
                             SELECT messages.message_id, messages.body, messages.author_name, COUNT(replies.message_id) AS num_replies FROM messages
@@ -213,7 +213,7 @@ def get_messages():
 def post_reply():
     header = request.headers
     data = json.loads(request.data)
-    
+
     auth_key = header['Auth-Key']
     message_id = data['message_id']
     text = data['text']
@@ -250,13 +250,13 @@ def get_message():
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
         message_id = header['message_id']
-        
+
         cur = con.cursor()
         message = cur.execute('''
                             SELECT * FROM messages
                             WHERE message_id = (?)
                             ''',
-                            (message_id,)).fetchone()  
+                            (message_id,)).fetchone()
         return {"success": True, "message": message}
     return {"success": False}
 
@@ -291,7 +291,7 @@ def get_replies():
 def update_and_count_last_read():
     header = request.headers
     auth_key = header['Auth-Key']
-    
+
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''

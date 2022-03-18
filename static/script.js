@@ -51,7 +51,7 @@ class Belay extends React.Component {
 				createUser={() => this.createUsername()}
 				loginUser={() => this.login()}/>
 			);
-		}		
+		}
 		else if (this.state.isAuth && (this.state.path == "/channels")) {
 			return (
 				<ChannelsHome
@@ -123,7 +123,7 @@ class Belay extends React.Component {
 		this.getReplies().then((response) => response.json())
 		.then(data => {
 			let replies = data["replies"];
-		
+
 			// first, remove all messages from html
 			let reply_div = document.getElementsByClassName("messages")[0];
 			while (reply_div.firstChild) {
@@ -134,7 +134,7 @@ class Belay extends React.Component {
 				let message_el = document.createElement("message");
 				let author_el = document.createElement("author");
 				let content;
-				
+
 				let message_txt = reply[1];
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
@@ -176,7 +176,7 @@ class Belay extends React.Component {
 				let message_el = document.getElementById("message");
 				let author_el = document.createElement("author");
 				let content;
-				
+
 				let message_txt = message[2];
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
@@ -209,7 +209,7 @@ class Belay extends React.Component {
 
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let text = document.querySelector("textarea").value;
-	  
+
 		let request = fetch("http://127.0.0.1:5000/api/post_reply",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
@@ -234,7 +234,7 @@ class Belay extends React.Component {
 		// get auth_key from storage
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let text = document.querySelector("textarea").value;
-	  
+
 		let request = fetch("http://127.0.0.1:5000/api/post_message",
 							{method: 'POST',
 							headers: {'Auth-Key': auth_key},
@@ -347,14 +347,14 @@ class Belay extends React.Component {
 
 	startChannelPolling() {
 		let path = window.location.pathname;
-		
+
 		if (path != "/") {
 			this.updateAndCountLastRead(false).then((response) => response.json())
 			.then(data => {
 				let channels_dict = data["channels_dict"];
-			
+
 				// first, remove all messages from html
-				let channels_div = document.getElementById("channel_list"); // [0]
+				let channels_div = document.getElementById("channel_list");
 				while (channels_div.firstChild) {
 					channels_div.removeChild(channels_div.firstChild);
 				}
@@ -368,7 +368,7 @@ class Belay extends React.Component {
 						let newPath = "/channels/" + channel_key + "?currentChannelID=" + channel_val["channel_id"] + "&currentChannel=" + channel_key;
 						this.newPathSetter(newPath, true);
 					};
-	
+
 					channel_button.addEventListener("click", clickHandler);
 					channel_button.append(channel_name);
 					channel_el.appendChild(channel_button);
@@ -385,7 +385,7 @@ class Belay extends React.Component {
 	createChannel(channel_name) {
 		let localStorage = window.localStorage;
 		let auth_key = localStorage.getItem('auth_key_morden');
-	  
+
 		let request = fetch("http://127.0.0.1:5000/api/create_channel",
 							{method: 'POST',
 							 headers: {'Auth-Key': auth_key},
@@ -405,7 +405,7 @@ class Belay extends React.Component {
 	createUsername() {
 		let username = document.querySelector("input#username").value;
 		let password = document.querySelector("input#password").value;
-	
+
 		if (username && password) {
 			let request = fetch("http://127.0.0.1:5000/api/create_user",
 								{method: 'POST',
@@ -436,7 +436,7 @@ class Belay extends React.Component {
 	login() {
 		let username = document.querySelector("input#username").value;
 		let password = document.querySelector("input#password").value;
-	
+
 		if (username && password) {
 			let request = fetch("http://127.0.0.1:5000/api/auth_user",
 								{method: 'GET',
@@ -499,7 +499,7 @@ class ChannelsHome extends React.Component {
 			this.props.createChannel(channel_name);
 		}
 	}
-	
+
 	componentDidMount() {
 		this.channelInterval = setInterval(this.props.getChannels, 500);
 	}
@@ -542,7 +542,7 @@ class ChannelsSelect extends React.Component {
 			this.props.createChannel(channel_name);
 		}
 	}
-	
+
 	componentDidMount() {
 		this.messageInterval = setInterval(this.props.getMessages, 500);
 		this.channelInterval = setInterval(this.props.getChannels, 500);
@@ -606,7 +606,7 @@ class Replies extends React.Component {
 	componentDidMount() {
 		this.props.getSingleMessage();
 		this.channelInterval = setInterval(this.props.getChannels, 500);
-		this.replyInterval = setInterval(this.props.startReplyPolling, 100); // might not need interval here since no buttons
+		this.replyInterval = setInterval(this.props.startReplyPolling, 100);
 	}
 
 	componentWillUnmount() {
