@@ -94,7 +94,6 @@ class Belay extends React.Component {
 							{method: 'GET',
 							 headers: {'Auth-Key': auth_key,
 										'user_id': this.state.userID}});
-							//  body: JSON.stringify({'user_id': this.state.userID})})
 		return request
 	}
 
@@ -125,7 +124,6 @@ class Belay extends React.Component {
 							{method: 'GET',
 							headers: {'Auth-Key': auth_key,
 										'message_id': currentMessageID}});
-							// body: JSON.stringify({'message_id': currentMessageID})});
 		return request
 	}
 
@@ -146,11 +144,9 @@ class Belay extends React.Component {
 				let content;
 				
 				let message_txt = reply[1];
-				// console.log(message_txt);
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
 				if (found && found.length > 0) {
-					// image found
 					content = document.createElement("img");
 					content.setAttribute("src", message_txt);
 				}
@@ -181,7 +177,6 @@ class Belay extends React.Component {
 							{method: 'GET',
 							headers: {'Auth-Key': auth_key,
 										'message_id': currentMessageID}});
-							// body: JSON.stringify({'message_id': currentMessageID})});
 		request.then((response) => response.json())
 		.then(data => {
 			if (data["success"]) {
@@ -191,11 +186,9 @@ class Belay extends React.Component {
 				let content;
 				
 				let message_txt = message[2];
-				// console.log(message_txt);
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
 				if (found && found.length > 0) {
-					// image found
 					content = document.createElement("img");
 					content.setAttribute("src", message_txt);
 				}
@@ -278,8 +271,6 @@ class Belay extends React.Component {
 							headers: {'Auth-Key': auth_key,
 										'channel_id': currentChannelID,
 										'currentChannel': currentChannel}});
-							// body: JSON.stringify({'channel_id': currentChannelID,
-												//   'currentChannel': currentChannel})});
 		return request
 	}
 
@@ -291,8 +282,6 @@ class Belay extends React.Component {
 			let currentChannel = data["currentChannel"];
 			let currentChannelID = data["currentChannelID"];
 
-			// console.log("MAX ID");
-			// console.log(max_id);
 			if (max_id) {
 				let localStorage = window.localStorage;
 				localStorage.setItem("maxMessageID", max_id);
@@ -308,7 +297,6 @@ class Belay extends React.Component {
 			// re-populate page with 'new' messages
 			for (let message of messages) {
 				let num_replies = message[3]
-				// console.log(num_replies);
 				let num_replies_txt;
 				let num_replies_el = document.createElement("p");
 				num_replies_el.setAttribute("id", "reply_count");
@@ -334,11 +322,9 @@ class Belay extends React.Component {
 				let author = document.createTextNode(message[2]);
 
 				let message_txt = message[1];
-				// console.log(message_txt);
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
 				if (found && found.length > 0) {
-					// image found
 					content = document.createElement("img");
 					content.setAttribute("src", message_txt);
 				}
@@ -363,7 +349,6 @@ class Belay extends React.Component {
 				message_el.appendChild(num_replies_el);
 
 				message_div.appendChild(message_el);
-				// });
 			}
 		});
 	}
@@ -465,8 +450,6 @@ class Belay extends React.Component {
 								{method: 'GET',
 								headers: {'username': username,
 											'password': password}});
-								//  body: JSON.stringify({'username': username,
-								// 						'password': password})});
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {

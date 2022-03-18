@@ -64,13 +64,9 @@ def create_user():
 
 @app.route('/api/auth_user', methods=['GET'])
 def auth_user():
-    # data = json.loads(request.data)
     header = request.headers
     username = header['username']
     password = header['password'].encode('utf-8')
-
-    # username = data['username']
-    # password = data['password'].encode('utf-8')
     
     cur = con.cursor()
     user = cur.execute('''
@@ -187,10 +183,6 @@ def get_messages():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        # data = json.loads(request.data)
-        # channel_id = data['channel_id']
-        # currentChannel = data['currentChannel']
-
         channel_id = header['channel_id']
         currentChannel = header['currentChannel']
         
@@ -257,8 +249,6 @@ def get_message():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        # data = json.loads(request.data)
-        # message_id = data['message_id']
         message_id = header['message_id']
         
         cur = con.cursor()
@@ -284,8 +274,6 @@ def get_replies():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        # data = json.loads(request.data)
-        # message_id = data['message_id']
         message_id = header['message_id']
 
         cur = con.cursor()
@@ -354,8 +342,6 @@ def count_unread():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        # data = json.loads(request.data)
-        # user_id = data['user_id']
         user_id = header['user_id']
 
         channels_dict = {}
