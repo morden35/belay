@@ -5,14 +5,6 @@ class Belay extends React.Component {
 
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let userID = localStorage.getItem('userID');
-		// these are more complex
-		// either coming from previous state, /channels url, /replies url
-		// let currentChannel = localStorage.getItem('currentChannel');
-		// let currentChannelID = localStorage.getItem('currentChannelID');
-		
-		// what about these?
-		// let currentMessageID = localStorage.getItem('currentMessageID');
-		// let maxMessageID = localStorage.getItem('maxMessageID');
 
 		if (auth_key){
 			this.state = {
@@ -20,10 +12,6 @@ class Belay extends React.Component {
 				auth_key: auth_key,
 				isAuth: true,
 				path: window.location.pathname,
-				// currentChannel: currentChannel,
-				// currentChannelID: currentChannelID,
-				// currentMessageID: currentMessageID,
-				// maxMessageID: maxMessageID
 			}
 		}
 		else {
@@ -32,10 +20,6 @@ class Belay extends React.Component {
 				auth_key: null,
 				isAuth: false,
 				path: window.location.pathname,
-				// currentChannel: null,
-				// currentChannelID: null,
-				// currentMessageID: null,
-				// maxMessageID: null
 			}
 		}
 
@@ -51,9 +35,6 @@ class Belay extends React.Component {
 			}
 			this.newPathSetter(newPath, false);
 		});
-		// component did mount (method within this component)
-		// react component superclass
-		// called after component is loaded on page
 	}
 
 	newPathSetter(newPath, pushToHistory=false) {
@@ -486,13 +467,6 @@ class Belay extends React.Component {
 		});
 		// }
 	}
-
-	// getChannels() {
-	// 	let request = fetch("http://127.0.0.1:5000/api/get_channels",
-	// 						{method: 'GET'});
-	// 						// body: JSON.stringify({'chat_id': chat_id})});
-	// 	return request
-	// }
 	
 	startChannelPolling() {
 		let path = window.location.pathname;
@@ -858,8 +832,8 @@ class Replies extends React.Component {
 					<div id="channel">
 						<div className="reply_interface">
 							<h2>{channel_name}</h2>
-							<message id="message">
-							</message>
+							<div id="message">
+							</div>
 							<div className="comment_box">
 								<form>
 									<label htmlFor="comment">What do you have to say?</label>
