@@ -12,12 +12,11 @@ con = sqlite3.connect('db/belay.db', check_same_thread=False, isolation_level=No
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-# TODO: Include any other routes your app might send users to
 @app.route('/')
 @app.route('/channels')
-@app.route('/channels/<string:channel_name>') # ?currentChannelID=<int:channel_id>&currentChannel=<string:cur_channel_name>
+@app.route('/channels/<string:channel_name>')
 @app.route('/replies/<int:message_id>')
-def index(channel_name=None, message_id=None): # , channel_id=None, cur_channel_name=None
+def index(channel_name=None, message_id=None):
     if channel_name:
         currentChannelID = request.args.get('currentChannelID')
         currentChannel = request.args.get('currentChannel')
@@ -35,7 +34,6 @@ def index(channel_name=None, message_id=None): # , channel_id=None, cur_channel_
 
 # -------------------------------- API ROUTES ----------------------------------
 
-# TODO: Create the API
 @app.route('/api/create_user', methods=['POST'])
 def create_user():
     data = json.loads(request.data)
@@ -309,7 +307,6 @@ def update_last_read():
         message_id = data['message_id']
 
         cur = con.cursor()
-        # instead of insert, coalese here?
         in_table = cur.execute('''SELECT user_id
                                 FROM last_read
                                 WHERE user_id = (?)
@@ -358,9 +355,6 @@ def count_unread():
             channel_id = channel[0]
             channel_name = channel[1]
 
-            # week 9 example of get_last_unread
-            # instead of for loop
-            # subquery CTE using with
             last_read = cur.execute('''SELECT message_id
                                     FROM last_read
                                     WHERE user_id = (?)
@@ -408,10 +402,7 @@ def count_replies():
                             ''',
                             (message_id,)).fetchone()[0]
         cur.close()
-        print(count_replies)
+        # print(count_replies)
 
         return {"success": True, "count_replies": count_replies}
     return {"success": False}
-# if __name__ == '__main__':
-#   app.run(debug = True, host = '0.0.0.0')
-# http://127.0.0.1:5000/
