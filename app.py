@@ -189,10 +189,19 @@ def get_messages():
         
         cur = con.cursor()
         messages = cur.execute('''
-                            SELECT * FROM messages
-                            WHERE channel_id = (?)
+                            SELECT messages.message_id, messages.body, messages.author_name, COUNT(replies.message_id) AS num_replies FROM messages
+                            LEFT JOIN replies
+                            ON messages.message_id = replies.message_id
+                            WHERE messages.channel_id = (?)
+                            GROUP BY messages.message_id
                             ''',
                             (channel_id,)).fetchall()
+        # print(messages)
+
+        # count_replies = cur.execute('''SELECT COUNT(*) FROM replies
+        #             WHERE message_id = (?)
+        #             ''',
+        #             (message_id,)).fetchone()[0]
 
         max_id = None
         if len(messages) > 0:
@@ -377,32 +386,4 @@ def count_unread():
                                             "unread": unread}
         cur.close()
         return {"success": True, "channels_dict": channels_dict}
-    return {"success": False}
-
-
-@app.route('/api/count_replies', methods=['POST'])
-def count_replies():
-    header = request.headers
-    auth_key = header['Auth-Key']
-
-    # first, authenticate user
-    cur = con.cursor()
-    stored_auth_key = cur.execute('''
-                        SELECT auth_key FROM users
-                        WHERE auth_key = (?)
-                        ''',
-                        (auth_key,)).fetchone()[0]
-    if stored_auth_key == auth_key:
-        data = json.loads(request.data)
-        message_id = data['message_id']
-
-        cur = con.cursor()
-        count_replies = cur.execute('''SELECT COUNT(*) FROM replies
-                            WHERE message_id = (?)
-                            ''',
-                            (message_id,)).fetchone()[0]
-        cur.close()
-        # print(count_replies)
-
-        return {"success": True, "count_replies": count_replies}
     return {"success": False}

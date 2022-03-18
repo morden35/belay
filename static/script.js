@@ -88,15 +88,6 @@ class Belay extends React.Component {
 		}
 	}
 
-	countReplies(message_id) {
-		let auth_key = localStorage.getItem('auth_key_morden');
-		let request = fetch("http://127.0.0.1:5000/api/count_replies",
-							{method: 'POST',
-							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'message_id': message_id})});
-		return request
-	}
-
 	countUnread() {
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/count_unread",
@@ -153,7 +144,7 @@ class Belay extends React.Component {
 				let content;
 				
 				let message_txt = reply[1];
-				console.log(message_txt);
+				// console.log(message_txt);
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
 				if (found && found.length > 0) {
@@ -197,7 +188,7 @@ class Belay extends React.Component {
 				let content;
 				
 				let message_txt = message[2];
-				console.log(message_txt);
+				// console.log(message_txt);
 				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
 				let found = message_txt.match(re);
 				if (found && found.length > 0) {
@@ -295,8 +286,8 @@ class Belay extends React.Component {
 			let currentChannel = data["currentChannel"];
 			let currentChannelID = data["currentChannelID"];
 
-			console.log("MAX ID");
-			console.log(max_id);
+			// console.log("MAX ID");
+			// console.log(max_id);
 			if (max_id) {
 				let localStorage = window.localStorage;
 				localStorage.setItem("maxMessageID", max_id);
@@ -311,69 +302,67 @@ class Belay extends React.Component {
 
 			// re-populate page with 'new' messages
 			for (let message of messages) {
-				this.countReplies(message[0]).then((response) => response.json())
-				.then(data => {
-					let num_replies = data['count_replies']
-					console.log(num_replies);
-					let num_replies_txt;
-					let num_replies_el = document.createElement("p");
-					num_replies_el.setAttribute("id", "reply_count");
+				let num_replies = message[3]
+				// console.log(num_replies);
+				let num_replies_txt;
+				let num_replies_el = document.createElement("p");
+				num_replies_el.setAttribute("id", "reply_count");
 
-					if (num_replies == 1) {
-						num_replies_txt = document.createTextNode(num_replies + " reply");
-						num_replies_el.appendChild(num_replies_txt);
-					}
-					else if (num_replies > 0) {
-						num_replies_txt = document.createTextNode(num_replies + " replies");
-						num_replies_el.appendChild(num_replies_txt);
-					}
+				if (num_replies == 1) {
+					num_replies_txt = document.createTextNode(num_replies + " reply");
+					num_replies_el.appendChild(num_replies_txt);
+				}
+				else if (num_replies > 0) {
+					num_replies_txt = document.createTextNode(num_replies + " replies");
+					num_replies_el.appendChild(num_replies_txt);
+				}
 
-					let message_el = document.createElement("message");
-					let author_el = document.createElement("author");
-					let content;
-	
-					let reply_button = document.createElement("button");
-					reply_button.setAttribute("id", "reply");
-					let reply = document.createTextNode("Reply");
-					reply_button.appendChild(reply);
-	
-					let author = document.createTextNode(message[3]);
-	
-					let message_txt = message[2];
-					console.log(message_txt);
-					const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
-					let found = message_txt.match(re);
-					if (found && found.length > 0) {
-						// image found
-						content = document.createElement("img");
-						content.setAttribute("src", message_txt);
-					}
-					else {
-						let message_body = document.createTextNode(message[2]);
-						content = document.createElement("content");
-						content.appendChild(message_body);
-					}
-	
-					let clickHandler = () => {
-						let currentMessageID = message[0];
-						let newPath = "/replies/" + message[0] + "?currentChannelID=" + currentChannelID + "&currentChannel=" + currentChannel + "&currentMessageID=" + currentMessageID;
-						this.newPathSetter(newPath, true);
-					};
-	
-					reply_button.addEventListener("click", clickHandler);
-					author_el.appendChild(author);
-	
-					message_el.appendChild(author_el);
-					message_el.appendChild(content);
-					message_el.appendChild(reply_button);
-					message_el.appendChild(num_replies_el);
-	
-					message_div.appendChild(message_el);
-				});
+				let message_el = document.createElement("message");
+				let author_el = document.createElement("author");
+				let content;
+
+				let reply_button = document.createElement("button");
+				reply_button.setAttribute("id", "reply");
+				let reply = document.createTextNode("Reply");
+				reply_button.appendChild(reply);
+
+				let author = document.createTextNode(message[2]);
+
+				let message_txt = message[1];
+				// console.log(message_txt);
+				const re = /(http(s?):)([\/|.|\w|\s|-])*\.(?:jpg|gif|png)/g;
+				let found = message_txt.match(re);
+				if (found && found.length > 0) {
+					// image found
+					content = document.createElement("img");
+					content.setAttribute("src", message_txt);
+				}
+				else {
+					let message_body = document.createTextNode(message_txt);
+					content = document.createElement("content");
+					content.appendChild(message_body);
+				}
+
+				let clickHandler = () => {
+					let currentMessageID = message[0];
+					let newPath = "/replies/" + currentMessageID + "?currentChannelID=" + currentChannelID + "&currentChannel=" + currentChannel + "&currentMessageID=" + currentMessageID;
+					this.newPathSetter(newPath, true);
+				};
+
+				reply_button.addEventListener("click", clickHandler);
+				author_el.appendChild(author);
+
+				message_el.appendChild(author_el);
+				message_el.appendChild(content);
+				message_el.appendChild(reply_button);
+				message_el.appendChild(num_replies_el);
+
+				message_div.appendChild(message_el);
+				// });
 			}
 		});
 	}
-	
+
 	startChannelPolling() {
 		let path = window.location.pathname;
 		
