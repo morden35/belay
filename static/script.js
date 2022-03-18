@@ -91,9 +91,10 @@ class Belay extends React.Component {
 	countUnread() {
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/count_unread",
-							{method: 'POST',
-							 headers: {'Auth-Key': auth_key},
-							 body: JSON.stringify({'user_id': this.state.userID})})
+							{method: 'GET',
+							 headers: {'Auth-Key': auth_key,
+										'user_id': this.state.userID}});
+							//  body: JSON.stringify({'user_id': this.state.userID})})
 		return request
 	}
 
@@ -121,9 +122,10 @@ class Belay extends React.Component {
 		let currentMessageID = urlParams.get('currentMessageID');
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_replies",
-							{method: 'POST',
-							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'message_id': currentMessageID})});
+							{method: 'GET',
+							headers: {'Auth-Key': auth_key,
+										'message_id': currentMessageID}});
+							// body: JSON.stringify({'message_id': currentMessageID})});
 		return request
 	}
 
@@ -176,9 +178,10 @@ class Belay extends React.Component {
 
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_message",
-							{method: 'POST',
-							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'message_id': currentMessageID})});
+							{method: 'GET',
+							headers: {'Auth-Key': auth_key,
+										'message_id': currentMessageID}});
+							// body: JSON.stringify({'message_id': currentMessageID})});
 		request.then((response) => response.json())
 		.then(data => {
 			if (data["success"]) {
@@ -271,10 +274,12 @@ class Belay extends React.Component {
 
 		let auth_key = localStorage.getItem('auth_key_morden');
 		let request = fetch("http://127.0.0.1:5000/api/get_messages",
-							{method: 'POST',
-							headers: {'Auth-Key': auth_key},
-							body: JSON.stringify({'channel_id': currentChannelID,
-												  'currentChannel': currentChannel})});
+							{method: 'GET',
+							headers: {'Auth-Key': auth_key,
+										'channel_id': currentChannelID,
+										'currentChannel': currentChannel}});
+							// body: JSON.stringify({'channel_id': currentChannelID,
+												//   'currentChannel': currentChannel})});
 		return request
 	}
 
@@ -457,9 +462,11 @@ class Belay extends React.Component {
 	
 		if (username && password) {
 			let request = fetch("http://127.0.0.1:5000/api/auth_user",
-								{method: 'POST',
-								 body: JSON.stringify({'username': username,
-														'password': password})});
+								{method: 'GET',
+								headers: {'username': username,
+											'password': password}});
+								//  body: JSON.stringify({'username': username,
+								// 						'password': password})});
 			request.then((response) => response.json())
 			.then(data => {
 				if (data['success']) {

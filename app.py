@@ -62,11 +62,15 @@ def create_user():
     return jsonify({'success': True, 'auth_key': auth_key, 'user_id': user_id})
 
 
-@app.route('/api/auth_user', methods=['POST'])
+@app.route('/api/auth_user', methods=['GET'])
 def auth_user():
-    data = json.loads(request.data)
-    username = data['username']
-    password = data['password'].encode('utf-8')
+    # data = json.loads(request.data)
+    header = request.headers
+    username = header['username']
+    password = header['password'].encode('utf-8')
+
+    # username = data['username']
+    # password = data['password'].encode('utf-8')
     
     cur = con.cursor()
     user = cur.execute('''
@@ -170,7 +174,7 @@ def post_message():
     return jsonify({'success': False})
 
 
-@app.route('/api/get_messages', methods=['POST'])
+@app.route('/api/get_messages', methods=['GET'])
 def get_messages():
     header = request.headers
     auth_key = header['Auth-Key']
@@ -183,9 +187,12 @@ def get_messages():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        data = json.loads(request.data)
-        channel_id = data['channel_id']
-        currentChannel = data['currentChannel']
+        # data = json.loads(request.data)
+        # channel_id = data['channel_id']
+        # currentChannel = data['currentChannel']
+
+        channel_id = header['channel_id']
+        currentChannel = header['currentChannel']
         
         cur = con.cursor()
         messages = cur.execute('''
@@ -196,12 +203,6 @@ def get_messages():
                             GROUP BY messages.message_id
                             ''',
                             (channel_id,)).fetchall()
-        # print(messages)
-
-        # count_replies = cur.execute('''SELECT COUNT(*) FROM replies
-        #             WHERE message_id = (?)
-        #             ''',
-        #             (message_id,)).fetchone()[0]
 
         max_id = None
         if len(messages) > 0:
@@ -243,7 +244,7 @@ def post_reply():
     return jsonify({'success': False})
 
 
-@app.route('/api/get_message', methods=['POST'])
+@app.route('/api/get_message', methods=['GET'])
 def get_message():
     header = request.headers
     auth_key = header['Auth-Key']
@@ -256,8 +257,9 @@ def get_message():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        data = json.loads(request.data)
-        message_id = data['message_id']
+        # data = json.loads(request.data)
+        # message_id = data['message_id']
+        message_id = header['message_id']
         
         cur = con.cursor()
         message = cur.execute('''
@@ -269,7 +271,7 @@ def get_message():
     return {"success": False}
 
 
-@app.route('/api/get_replies', methods=['POST'])
+@app.route('/api/get_replies', methods=['GET'])
 def get_replies():
     header = request.headers
     auth_key = header['Auth-Key']
@@ -282,8 +284,9 @@ def get_replies():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        data = json.loads(request.data)
-        message_id = data['message_id']
+        # data = json.loads(request.data)
+        # message_id = data['message_id']
+        message_id = header['message_id']
 
         cur = con.cursor()
         replies = cur.execute('''SELECT * FROM replies
@@ -338,7 +341,7 @@ def update_last_read():
     return {"success": False}
 
 
-@app.route('/api/count_unread', methods=['POST'])
+@app.route('/api/count_unread', methods=['GET'])
 def count_unread():
     header = request.headers
     auth_key = header['Auth-Key']
@@ -351,9 +354,9 @@ def count_unread():
                         ''',
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
-        data = json.loads(request.data)
-        
-        user_id = data['user_id']
+        # data = json.loads(request.data)
+        # user_id = data['user_id']
+        user_id = header['user_id']
 
         channels_dict = {}
 
