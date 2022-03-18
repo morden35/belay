@@ -88,16 +88,7 @@ class Belay extends React.Component {
 		}
 	}
 
-	countUnread() {
-		let auth_key = localStorage.getItem('auth_key_morden');
-		let request = fetch("http://127.0.0.1:5000/api/count_unread",
-							{method: 'GET',
-							 headers: {'Auth-Key': auth_key,
-										'user_id': this.state.userID}});
-		return request
-	}
-
-	updateLastRead() {
+	updateAndCountLastRead(update=true) {
 		let queryString = window.location.search;
 		let urlParams = new URLSearchParams(queryString);
 		let currentChannelID = urlParams.get('currentChannelID');
@@ -106,13 +97,14 @@ class Belay extends React.Component {
 		let maxMessageID = localStorage.getItem("maxMessageID");
 
 		let auth_key = localStorage.getItem('auth_key_morden');
-		let request = fetch("http://127.0.0.1:5000/api/update_last_read_message",
+		let request = fetch("http://127.0.0.1:5000/api/update_and_count_last_read",
 							{method: 'POST',
 							 headers: {'Auth-Key': auth_key},
-							 body: JSON.stringify({'user_id': this.state.userID,
+							 body: JSON.stringify({'update': update,
+												   'user_id': this.state.userID,
 												   'channel_id': currentChannelID,
 												   'message_id': maxMessageID})});
-		// return request?
+		return request
 	}
 
 	getReplies() {
@@ -285,7 +277,7 @@ class Belay extends React.Component {
 			if (max_id) {
 				let localStorage = window.localStorage;
 				localStorage.setItem("maxMessageID", max_id);
-				this.updateLastRead();
+				this.updateAndCountLastRead();
 			}
 
 			// first, remove all messages from html
@@ -357,7 +349,7 @@ class Belay extends React.Component {
 		let path = window.location.pathname;
 		
 		if (path != "/") {
-			this.countUnread().then((response) => response.json())
+			this.updateAndCountLastRead(false).then((response) => response.json())
 			.then(data => {
 				let channels_dict = data["channels_dict"];
 			
@@ -538,6 +530,7 @@ class ChannelsHome extends React.Component {
 }
 
 class ChannelsSelect extends React.Component {
+	// displays available channels and selected channel
 	constructor(props) {
 		super(props)
 		this.channelInterval = null
@@ -551,8 +544,8 @@ class ChannelsSelect extends React.Component {
 	}
 	
 	componentDidMount() {
-		this.messageInterval = setInterval(this.props.getMessages, 400);
-		this.channelInterval = setInterval(this.props.getChannels, 600);
+		this.messageInterval = setInterval(this.props.getMessages, 500);
+		this.channelInterval = setInterval(this.props.getChannels, 500);
 	}
 
 	componentWillUnmount() {
@@ -613,7 +606,7 @@ class Replies extends React.Component {
 	componentDidMount() {
 		this.props.getSingleMessage();
 		this.channelInterval = setInterval(this.props.getChannels, 500);
-		this.replyInterval = setInterval(this.props.startReplyPolling, 500); // might not need interval here since no buttons
+		this.replyInterval = setInterval(this.props.startReplyPolling, 100); // might not need interval here since no buttons
 	}
 
 	componentWillUnmount() {

@@ -287,11 +287,11 @@ def get_replies():
     return {"success": False}
 
 
-@app.route('/api/update_last_read_message', methods=['POST'])
-def update_last_read():
+@app.route('/api/update_and_count_last_read', methods=['POST'])
+def update_and_count_last_read():
     header = request.headers
     auth_key = header['Auth-Key']
-
+    
     # first, authenticate user
     cur = con.cursor()
     stored_auth_key = cur.execute('''
@@ -301,53 +301,33 @@ def update_last_read():
                         (auth_key,)).fetchone()[0]
     if stored_auth_key == auth_key:
         data = json.loads(request.data)
-        
-        user_id = data['user_id']
-        channel_id = data['channel_id']
-        message_id = data['message_id']
-
-        cur = con.cursor()
-        in_table = cur.execute('''SELECT user_id
-                                FROM last_read
-                                WHERE user_id = (?)
-                                AND channel_id = (?)''',
-                                (user_id, channel_id,)).fetchone()
-        if in_table:
-            cur.execute('''UPDATE last_read
-                        SET message_id = (?)
-                        WHERE user_id = (?)
-                        AND channel_id = (?)''',
-                        (message_id, user_id, channel_id,))
-        else:
-            cur.execute('''INSERT INTO last_read
-                        (user_id, channel_id, message_id)
-                        VALUES (?, ?, ?)''',
-                        (user_id, channel_id, message_id))
-        cur.close()
-
-        return {'success': True}
-    return {"success": False}
-
-
-@app.route('/api/count_unread', methods=['GET'])
-def count_unread():
-    header = request.headers
-    auth_key = header['Auth-Key']
-
-    # first, authenticate user
-    cur = con.cursor()
-    stored_auth_key = cur.execute('''
-                        SELECT auth_key FROM users
-                        WHERE auth_key = (?)
-                        ''',
-                        (auth_key,)).fetchone()[0]
-    if stored_auth_key == auth_key:
-        user_id = header['user_id']
-
         channels_dict = {}
 
-        cur = con.cursor()
+        user_id = data['user_id']
 
+        if data['update']:
+        # update last read message
+            channel_id = data['channel_id']
+            message_id = data['message_id']
+            cur = con.cursor()
+            in_table = cur.execute('''SELECT user_id
+                                    FROM last_read
+                                    WHERE user_id = (?)
+                                    AND channel_id = (?)''',
+                                    (user_id, channel_id,)).fetchone()
+            if in_table:
+                cur.execute('''UPDATE last_read
+                            SET message_id = (?)
+                            WHERE user_id = (?)
+                            AND channel_id = (?)''',
+                            (message_id, user_id, channel_id,))
+            else:
+                cur.execute('''INSERT INTO last_read
+                            (user_id, channel_id, message_id)
+                            VALUES (?, ?, ?)''',
+                            (user_id, channel_id, message_id))
+
+        # count unread for each channel
         all_channels = cur.execute('''SELECT * FROM channels''').fetchall()
         for channel in all_channels:
             channel_id = channel[0]
