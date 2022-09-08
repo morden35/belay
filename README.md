@@ -59,66 +59,51 @@ $ flask run
 
 4. Access Belay in the browser at the URL that Flask prints to the command line, e.g. `* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)`
 
+### Additional Technical Details
 
 Database
-- Create database and tables with migrations in version control.
-- A table for channels that stores a unique id and the channel name. That unique
-  id may be an integer, or a slug like from Exercise 3
-- A table for messages that stores, at a minimum, what channel the message is in,
+- Belay contains a database (belay.db) that contains tables with migrations in version control.
+- The database contains a table for channels that stores a unique id and the channel name.
+- The database contains a table for messages that stores what channel the message is in,
   the user that wrote the message, and its text contents.
-- A way of storing Replies. This could be a separate replies table, or in the
-  messages table with a way of distinguishing messages in a channel from replies
-  to a message, e.g. with a `replies_to` column.
-- A join table holding the latest timestamp or message id seen for each user in
-  each channel
-- Store passwords securely by hashing them with bcrypt
-- Sanitize all database inputs using prepared statements
+- The database contains a table for storing replies.
+- The database contains a join table (last_read) holding the latest message id seen for each user in
+  each channel.
+- The database stores passwords securely by hashing them with bcrypt.
+- Belay sanitize all database inputs using prepared statements.
 
-API
-- Give API endpoints a unique path namespace to distinguish them from your HTML
-  path(s) e.g. `/api/endpoint1`, `/api/encpoint2` etc.
-- Authentication endpoint that accepts a username and password.
-- Authenticate to other endpoints via session token in the request header (not
-  as a URL param or in a request body)
-- Use GET requests for API calls that don't change data on the server
-- Use POST requests for API calls that change data on the server
-- Endpoints to create and get channels and messages
-- Endpoint to return unread message counts for the user for each channel
-- Endpoint to update a user's last read message
+The API
+- Contains an authentication endpoint that accepts a username and password.
+- Authenticates to other endpoints via session token in the request header (not
+  as a URL param or in a request body).
+- Uses GET requests for API calls that don't change data on the server.
+- Uses POST requests for API calls that change data on the server.
+- Contains endpoints to create and get channels and messages.
+- Contains endpoint to return unread message counts for the user for each channel.
+- Contains endpoint to update a user's last read message.
 
 UI and Responsive Layout
-- Prompt unauthenticaed users to sign in with their username and password, or to
-  create an account. You do not need to support changing
+- Prompts unauthenticaed users to sign in with their username and password, or to
+  create an account.
 - On wide screens, two-column layout to show the channel list in one column and
   the messages in one active channel or thread in the other column.
 - When viewing replies, users can see the parent message they are replying to.
-  They can click a button or link to navigate to the channel containing the
+  They can click a button to navigate to the channel containing the
   parent message.
-- On narrow screens, one-column layout with menu bar. Users see the channel list,
-  the messages in one channel, or the replies to one message at a time, and not
-  the other two.
-- When viewing messages in a channel on a narrow screen, users have a button or
-  link they can click to navigate back to the channel list.
-- Parse image URLs that appear in messages and display the images at the end of
-  the message. Hint: you may use the web to help you find an appropriate regular
-  expression.
-- Display the number of unread messages per channel
+- Parses image URLs that appear in messages and display the images at the end of
+  the message.
+- Display the number of unread messages per channel.
 - For each message with replies, display the number of replies to that message.
 
 Single-Page State
-- Only serve one HTML request
+- Only serve one HTML request.
 - Push the channel name (for messages) or parent message id (for replies) to the
   history and navigation bar when the user navigates to a channel or thread.
 - Loading the unique URL of a channel or thread should open the app to that
   channel or thread.
-- Users can use the Back button to navigate to a previous channel or thread
-- Save the user's username and auth key in localStorage or in a cookie. Include
-  your CNETID as part of your storage keys so your storage won't conflict with
-  those of other students on the graders' machines.
+- Users can use the Back button to navigate to a previous channel or thread.
 
 Asynchronous Request Handling
-- Continuously poll for new messages, only in the channel the user is in. You
-  may use setInterval.
-- Continuously poll for which channels have new unread messages and how many.
-  Use only one HTTP request to get counts for all channels. You may use
-  setInterval.
+- Continuously polls for new messages, only in the channel the user is in.
+- Continuously polls for which channels have new unread messages and how many.
+  Use only one HTTP request to get counts for all channels.
