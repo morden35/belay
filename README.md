@@ -69,7 +69,7 @@ Database
 - The database contains a table for storing replies.
 - The database contains a join table (last_read) holding the latest message id seen for each user in
   each channel.
-- The database stores passwords securely by hashing them with bcrypt.
+- Belay stores passwords securely by hashing them with bcrypt.
 - Belay sanitize all database inputs using prepared statements.
 
 The API
@@ -79,8 +79,8 @@ The API
 - Uses GET requests for API calls that don't change data on the server.
 - Uses POST requests for API calls that change data on the server.
 - Contains endpoints to create and get channels and messages.
-- Contains endpoint to return unread message counts for the user for each channel.
-- Contains endpoint to update a user's last read message.
+- Contains an endpoint to return unread message counts for the user for each channel.
+- Contains an endpoint to update a user's last read message.
 
 UI and Responsive Layout
 - Prompts unauthenticaed users to sign in with their username and password, or to
