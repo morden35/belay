@@ -10,10 +10,9 @@ messaging app Slack. I call this version [Belay](https://en.wikipedia.org/wiki/B
 ### Features
 
 - Belay lets users send and read real-time chat messages that are organized
-  into rooms called Channels. Users see a list of all the channels on the server
-  and can click one to enter that channel. Inside, they see all the messages
+  into rooms called Channels. Users see a list of all the channels and can click one to enter that channel. Inside, they see all the messages
   posted to that channel by any user, and can post their own messages.
-  All messages belong to a channel and all channels are visible to all users (no private rooms or direct messages).
+  All messages belong to a channel and all channels are visible to all users (no private rooms or direct messages implemented).
 - Any user can create a new channel by supplying a display name. Channel names
   must be unique.
 - Like Slack, messages may be threaded as Replies in response to a message in a
@@ -21,15 +20,12 @@ messaging app Slack. I call this version [Belay](https://en.wikipedia.org/wiki/B
   that number is greater than zero. Nested threads are not supported;
   messages either belong directly to a channel or are replies in a thread to a
   message that does, but replies can't have nested replies of their own.
-- I have emulated Slack's two-column layout using grids and flexboxes.
+- Belay emulates Slack's two-column layout using grids and flexboxes.
 - Like Slack, if a message contains any URLs that point to
-  [valid image formats](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#Supported_image_formats),
-  I display the images in the chat at the bottom of the message.
+  [valid image formats](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#Supported_image_formats), the image is displayed in the chat at the bottom of the message.
 - The channel display indicates how many new messages have been posted to that
   channel that the user hasn't read yet. In the database, we track the highest
-  message id a user has seen in each channel. Belay counts all messages in a
-  channel as seen if the user is in the channel when they are posted or visits
-  it after.
+  message id a user has seen in each channel.
 - Users have a display name that they use to login with their password.
 - Belay is a single-page web application. We serve a single HTML request on load
   and do not refresh the page. As users navigate to a channel, the application
@@ -49,21 +45,19 @@ messaging app Slack. I call this version [Belay](https://en.wikipedia.org/wiki/B
 
 ### Directions to Run
 
-To run Belay, Python 3.9+ with Flask must be installed, as well as a local install of
-SQLite 3.
+To run Belay locally, [Python 3.9+](https://www.python.org/downloads/) with [Flask](https://flask.palletsprojects.com/en/2.2.x/installation/), as well as [SQLite 3](https://www.sqlitetutorial.net/download-install-sqlite/) must be installed.
 
-- First, graders will run your migrations in lexical order from the command line.
-- Then, graders will start your app with a `flask run` command from the command
-  line. Graders will have their FLASK_APP environment variable set to "app," so
-  name your Flask file `app.py`.
-- Graders will have the packages in `requirements.txt` installed with `pip3 install
-  -r requirements.txt`. If you feel strongly that you need a package not listed
-  there, ask on the course Slack.
-- Graders will try to access your app in their browser at the URL that Flask
-  prints to the command line, e.g. `* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)`
-- Make sure that your app starts successfully under these circumstances. We'll
-  do our best to make your app run even if it doesn't, but with a points penalty.
+Once Python 3.9+, Flask, and Sqlite3 are installed, do the following:
+1. Install additional packages:
+$ pip3 install -r requirements.txt
 
+2. Run sqlite3 migrations from the command line:
+$ cat db/20220307T104700-create_tables.sql | sqlite3 db/belay.db
+
+3. Start the Belay app:
+$ flask run
+
+4. Access Belay in the browser at the URL that Flask prints to the command line, e.g. `* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)`
 
 
 Database
